@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  role      String     @default("EMPLOYEE")
+  employee  Employee?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([email])
+}
+
+// Employee model
+model Employee {
+  id                    String          @id @default(cuid())
+  userId                String          @unique
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Personal Information
+  fullName              String
+  profilePicture        String?
+  cnicNumber            String          @unique
+  email                 String          @unique
+  phoneNumber           String
+  address               String
+  emergencyContactName  String
+  emergencyContactNumber String
+  
+  // Employment Information
+  employeeId            String          @unique // Auto-generated or manual
+  designation           String
+  department            String
+  joiningDate           DateTime
+  monthlySalary         Float
+  status                String          @default("ACTIVE")
+  
+  // Working Hours
+  reportingTime         String?         // HH:MM format (e.g., "10:00")
+  logoutTime            String?         // HH:MM format (e.g., "19:00")
+  workingDays           String?         // e.g., "MON,TUE,WED,THU,FRI" or "MON,TUE,WED,THU,FRI,SAT"
+  
+  // Relations
+  attendance            Attendance[]
+  salaryRecords         SalaryRecord[]
+  salesLeads            SalesLead[]
+  
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([employeeId])
+  @@index([email])
+  @@index([department])
+  @@index([status])
+}
+
+// Attendance model
+model Attendance {
+  id          String    @id @default(cuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  date        DateTime
+  checkInTime DateTime
+  checkOutTime DateTime?
+  workingHours Float?   // Calculated field: (checkOutTime - checkInTime) / 3600
+  status      String   @default("PRESENT")
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([date])
+  @@index([status])
+}
+
+// Salary Record model
+model SalaryRecord {
+  id                String    @id @default(cuid())
+  employeeId        String
+  employee          Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  month             DateTime
+  daysWorked        Int
+  totalSalary       Float
+  earnedSalary      Float
+  deductions        Float     @default(0)
+  commission        Float     @default(0)  // Total commission from leads
+  monthlyIncentive  Float     @default(0)  // Incentive if total leads >= 1 Crore
+  netSalary         Float
+  status            String    @default("PENDING")
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([employeeId, month])
+  @@index([employeeId])
+  @@index([month])
+}
+
+// Sales Lead model
+model SalesLead {
+  id          String    @id @default(cuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  leadWorth   Float     // Worth of the lead in PKR
+  confirmed   Boolean   @default(false)  // Whether lead is confirmed
+  confirmedAt DateTime?
+  commission  Float     @default(0)  // Calculated commission: 500 if <= 25000, 1000 if > 25000
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([confirmedAt])
+}
+
+
