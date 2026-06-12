@@ -26,10 +26,10 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install only production dependencies
+# Install only production dependencies (skip postinstall scripts)
 COPY package*.json ./
 
-RUN npm ci --only=production --legacy-peer-deps
+RUN npm ci --only=production --legacy-peer-deps --ignore-scripts
 
 # Copy Prisma from builder
 COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
