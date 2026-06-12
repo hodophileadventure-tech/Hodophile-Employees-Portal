@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hodophile_postgres
+    environment:
+      POSTGRES_DB: hodophile_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hodophile
+
+  app:
+    build: .
+    container_name: hodophile_app
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/hodophile_db"
+      JWT_SECRET: "dev-secret-key-change-in-production"
+      NODE_ENV: "development"
+      NEXT_PUBLIC_API_URL: "http://localhost:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && npm start"
+    networks:
+      - hodophile
+
+volumes:
+  postgres_data:
+
+networks:
+  hodophile:
+    driver: bridge
