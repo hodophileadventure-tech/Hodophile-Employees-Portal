@@ -37,9 +37,13 @@ COPY package*.json ./
 
 RUN npm ci --only=production --legacy-peer-deps --ignore-scripts
 
-# Copy Prisma from builder
+# Copy Prisma CLI and runtime packages from builder
 COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma /app/node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma /app/node_modules/prisma
+COPY --from=builder /app/node_modules/ts-node /app/node_modules/ts-node
+COPY --from=builder /app/node_modules/.bin/prisma /app/node_modules/.bin/prisma
+COPY --from=builder /app/node_modules/.bin/ts-node /app/node_modules/.bin/ts-node
 
 # Copy prisma schema
 COPY prisma ./prisma/
