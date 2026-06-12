@@ -1,16 +1,18 @@
--- CreateTable
+-- CreateTable "User"
 CREATE TABLE "User" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "role" TEXT NOT NULL DEFAULT 'EMPLOYEE',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- CreateTable "Employee"
 CREATE TABLE "Employee" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "fullName" TEXT NOT NULL,
     "profilePicture" TEXT,
@@ -23,42 +25,64 @@ CREATE TABLE "Employee" (
     "employeeId" TEXT NOT NULL,
     "designation" TEXT NOT NULL,
     "department" TEXT NOT NULL,
-    "joiningDate" DATETIME NOT NULL,
-    "monthlySalary" REAL NOT NULL,
+    "joiningDate" TIMESTAMP(3) NOT NULL,
+    "monthlySalary" DOUBLE PRECISION NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'ACTIVE',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Employee_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "reportingTime" TEXT,
+    "logoutTime" TEXT,
+    "workingDays" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Employee_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- CreateTable "Attendance"
 CREATE TABLE "Attendance" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "employeeId" TEXT NOT NULL,
-    "date" DATETIME NOT NULL,
-    "checkInTime" DATETIME NOT NULL,
-    "checkOutTime" DATETIME,
-    "workingHours" REAL,
+    "date" TIMESTAMP(3) NOT NULL,
+    "checkInTime" TIMESTAMP(3) NOT NULL,
+    "checkOutTime" TIMESTAMP(3),
+    "workingHours" DOUBLE PRECISION,
     "status" TEXT NOT NULL DEFAULT 'PRESENT',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Attendance_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Attendance_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- CreateTable "SalaryRecord"
 CREATE TABLE "SalaryRecord" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "employeeId" TEXT NOT NULL,
-    "month" DATETIME NOT NULL,
+    "month" TIMESTAMP(3) NOT NULL,
     "daysWorked" INTEGER NOT NULL,
-    "totalSalary" REAL NOT NULL,
-    "earnedSalary" REAL NOT NULL,
-    "deductions" REAL NOT NULL DEFAULT 0,
-    "netSalary" REAL NOT NULL,
+    "totalSalary" DOUBLE PRECISION NOT NULL,
+    "earnedSalary" DOUBLE PRECISION NOT NULL,
+    "deductions" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "commission" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "monthlyIncentive" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "netSalary" DOUBLE PRECISION NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "SalaryRecord_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SalaryRecord_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable "SalesLead"
+CREATE TABLE "SalesLead" (
+    "id" TEXT NOT NULL,
+    "employeeId" TEXT NOT NULL,
+    "leadWorth" DOUBLE PRECISION NOT NULL,
+    "confirmed" BOOLEAN NOT NULL DEFAULT false,
+    "confirmedAt" TIMESTAMP(3),
+    "commission" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SalesLead_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -92,6 +116,9 @@ CREATE INDEX "Employee_department_idx" ON "Employee"("department");
 CREATE INDEX "Employee_status_idx" ON "Employee"("status");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Attendance_employeeId_date_key" ON "Attendance"("employeeId", "date");
+
+-- CreateIndex
 CREATE INDEX "Attendance_employeeId_idx" ON "Attendance"("employeeId");
 
 -- CreateIndex
@@ -101,7 +128,7 @@ CREATE INDEX "Attendance_date_idx" ON "Attendance"("date");
 CREATE INDEX "Attendance_status_idx" ON "Attendance"("status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Attendance_employeeId_date_key" ON "Attendance"("employeeId", "date");
+CREATE UNIQUE INDEX "SalaryRecord_employeeId_month_key" ON "SalaryRecord"("employeeId", "month");
 
 -- CreateIndex
 CREATE INDEX "SalaryRecord_employeeId_idx" ON "SalaryRecord"("employeeId");
@@ -110,4 +137,19 @@ CREATE INDEX "SalaryRecord_employeeId_idx" ON "SalaryRecord"("employeeId");
 CREATE INDEX "SalaryRecord_month_idx" ON "SalaryRecord"("month");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SalaryRecord_employeeId_month_key" ON "SalaryRecord"("employeeId", "month");
+CREATE INDEX "SalesLead_employeeId_idx" ON "SalesLead"("employeeId");
+
+-- CreateIndex
+CREATE INDEX "SalesLead_confirmedAt_idx" ON "SalesLead"("confirmedAt");
+
+-- AddForeignKey
+ALTER TABLE "Employee" ADD CONSTRAINT "Employee_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Attendance" ADD CONSTRAINT "Attendance_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SalaryRecord" ADD CONSTRAINT "SalaryRecord_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SalesLead" ADD CONSTRAINT "SalesLead_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
