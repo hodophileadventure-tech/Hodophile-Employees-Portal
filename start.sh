@@ -15,4 +15,4 @@ if [ "$SEED_DATABASE" = "true" ]; then
 fi
 
 echo "✨ Starting Next.js server..."
-exec npm start
+exec next start
