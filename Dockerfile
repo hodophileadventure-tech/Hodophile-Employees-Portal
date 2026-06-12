@@ -18,6 +18,9 @@ COPY . .
 # Build Next.js app
 RUN npm run build
 
+# Ensure public directory exists for production copy
+RUN mkdir -p /app/public
+
 # Production stage
 FROM node:20-alpine
 
