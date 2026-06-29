@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { DollarSign, TrendingUp, Calendar } from 'lucide-react'
+import { DollarSign } from 'lucide-react'
 import ProgressRing from '@/components/premium/ProgressRing'
 
 export default function SalaryPage() {
@@ -12,11 +12,6 @@ export default function SalaryPage() {
     earnedSalary: 0,
     presentDays: 0,
     totalDays: 22,
-    records: [
-      { month: 'May 2024', earned: 75000, status: 'PAID' },
-      { month: 'April 2024', earned: 70000, status: 'PAID' },
-      { month: 'March 2024', earned: 75000, status: 'PAID' },
-    ],
   })
   const [loading, setLoading] = useState(true)
 
@@ -47,12 +42,12 @@ export default function SalaryPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Salary</h1>
-        <p className="text-slate-600 dark:text-slate-400 mt-2">Your salary information and history</p>
+        <p className="text-slate-600 dark:text-slate-400 mt-2">Your current month salary information</p>
       </div>
 
       <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         {/* Current Month Summary */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2">
           <div className="card-lg bg-white dark:bg-slate-900 p-6">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Current Month Summary</h2>
 
@@ -84,25 +79,6 @@ export default function SalaryPage() {
                   <span className="font-semibold text-slate-900 dark:text-white">Rs. {salaryData.earnedSalary.toLocaleString()}</span>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Salary History */}
-          <div className="card-lg bg-white dark:bg-slate-900 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Salary History</h2>
-
-            <div className="space-y-3">
-              {salaryData.records.map((record) => (
-                <div key={record.month} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                  <div>
-                    <p className="font-medium text-slate-900 dark:text-white">{record.month}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <p className="font-semibold text-slate-900 dark:text-white">Rs. {record.earned.toLocaleString()}</p>
-                    <span className="inline-block px-3 py-1 bg-success/20 text-success rounded-full text-xs font-semibold">{record.status}</span>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
