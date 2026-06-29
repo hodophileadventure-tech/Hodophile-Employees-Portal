@@ -15,4 +15,4 @@ if [ "$SEED_DATABASE" = "true" ]; then
 fi
 
 echo "✨ Starting Next.js server..."
-exec next start
+exec npx --no-install next start
