@@ -1,5 +1,5 @@
 // app/(dashboard)/employee/dashboard/page.tsx
-'use client'
+"use client"
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
@@ -27,20 +27,41 @@ interface EmployeeStats {
 
 export default function EmployeeDashboard() {
   const [stats, setStats] = useState<EmployeeStats>({
-    monthlySalary: 75000,
-    earnedSalary: 67500,
-    presentDays: 18,
-    absentDays: 3,
+    monthlySalary: 0,
+    earnedSalary: 0,
+    presentDays: 0,
+    absentDays: 0,
     totalDaysInMonth: 22,
-    checkInTime: '09:15 AM',
+    checkInTime: undefined,
     checkOutTime: undefined,
-    workingHours: 8.5,
+    workingHours: 0,
   })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Simulate data fetch
-    setLoading(false)
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setLoading(false)
+      return
+    }
+
+    fetch('/api/employee/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const emp = data.data
+          setStats((s) => {
+            const monthlySalary = emp.monthlySalary ?? s.monthlySalary
+            const presentDays = s.presentDays || 0
+            const earnedSalary = Math.round((presentDays / s.totalDaysInMonth) * monthlySalary)
+            return { ...s, monthlySalary, earnedSalary }
+          })
+        }
+      })
+      .catch((e) => console.error('Failed to load employee stats', e))
+      .finally(() => setLoading(false))
   }, [])
 
   const salaryProgress = (stats.earnedSalary / stats.monthlySalary) * 100
