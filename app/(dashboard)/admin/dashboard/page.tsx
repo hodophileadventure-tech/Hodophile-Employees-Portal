@@ -137,11 +137,38 @@ export default function AdminDashboard() {
             <Calendar size={20} className="text-slate-400" />
           </div>
 
-          {/* Placeholder Chart */}
-          <div className="h-64 bg-gradient-to-br from-slate-50 dark:from-slate-800 to-slate-100 dark:to-slate-700 rounded-lg flex items-center justify-center">
-            <p className="text-slate-500 dark:text-slate-400">
-              Chart visualization coming soon
-            </p>
+          <div className="grid h-64 grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Present Today</p>
+              <p className="mt-3 text-3xl font-semibold">{stats.presentToday}</p>
+              <div className="mt-4 h-2 rounded-full bg-slate-200 dark:bg-slate-700">
+                <div
+                  className="h-full rounded-full bg-emerald-500"
+                  style={{ width: `${stats.totalEmployees ? (stats.presentToday / stats.totalEmployees) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Absent Today</p>
+              <p className="mt-3 text-3xl font-semibold">{stats.absentToday}</p>
+              <div className="mt-4 h-2 rounded-full bg-slate-200 dark:bg-slate-700">
+                <div
+                  className="h-full rounded-full bg-amber-500"
+                  style={{ width: `${stats.totalEmployees ? (stats.absentToday / stats.totalEmployees) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Monthly Expense</p>
+              <p className="mt-3 text-3xl font-semibold">Rs. {(stats.monthlyExpense / 100000).toFixed(1)}L</p>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Departments</p>
+              <p className="mt-3 text-3xl font-semibold">{stats.departments.length}</p>
+            </div>
           </div>
         </div>
 
