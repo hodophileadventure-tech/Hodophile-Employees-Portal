@@ -39,8 +39,7 @@ COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma /app/node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma /app/node_modules/prisma
 COPY --from=builder /app/node_modules/ts-node /app/node_modules/ts-node
-COPY --from=builder /app/node_modules/.bin/prisma /app/node_modules/.bin/prisma
-COPY --from=builder /app/node_modules/.bin/ts-node /app/node_modules/.bin/ts-node
+COPY --from=builder /app/node_modules/.bin /app/node_modules/.bin
 
 # Copy prisma schema
 COPY prisma ./prisma/
