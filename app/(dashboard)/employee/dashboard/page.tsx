@@ -47,27 +47,74 @@ export default function EmployeeDashboard() {
       return
     }
 
-    fetch('/api/employee/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          const emp = data.data
+    const fetchStats = async () => {
+      const defaultTotalDays = 22
+
+      try {
+        const now = new Date()
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+        const [meResponse, attendanceResponse] = await Promise.all([
+          fetch('/api/employee/me', {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`/api/employee/attendance?month=${currentMonth}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ])
+
+        const meData = await meResponse.json()
+        const attendanceData = await attendanceResponse.json()
+
+        if (!meData.success) {
+          return
+        }
+
+        const emp = meData.data
+        const monthlySalary = emp.monthlySalary ?? 0
+
+        if (attendanceData.success) {
+          const attendanceStats = attendanceData.data.statistics
+          const records = attendanceData.data.records || []
+          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+          const todaysRecord = records.find((record: any) => {
+            const recordDate = new Date(record.date)
+            recordDate.setHours(0, 0, 0, 0)
+            return recordDate.getTime() === todayStart
+          })
+
+          const presentDays = attendanceStats.presentCount
+          const earnedSalary = Math.round((presentDays / defaultTotalDays) * monthlySalary)
+
+          setStats({
+            monthlySalary,
+            earnedSalary,
+            presentDays,
+            absentDays: attendanceStats.absentCount,
+            checkInTime: todaysRecord?.checkInTime,
+            checkOutTime: todaysRecord?.checkOutTime,
+            workingHours: todaysRecord?.workingHours ?? 0,
+            totalDaysInMonth: defaultTotalDays,
+          })
+        } else {
           setStats((s) => {
-            const monthlySalary = emp.monthlySalary ?? s.monthlySalary
             const presentDays = s.presentDays || 0
             const earnedSalary = Math.round((presentDays / s.totalDaysInMonth) * monthlySalary)
             return { ...s, monthlySalary, earnedSalary }
           })
         }
-      })
-      .catch((e) => console.error('Failed to load employee stats', e))
-      .finally(() => setLoading(false))
+      } catch (e) {
+        console.error('Failed to load employee stats', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchStats()
   }, [])
 
-  const salaryProgress = (stats.earnedSalary / stats.monthlySalary) * 100
-  const attendanceProgress = (stats.presentDays / stats.totalDaysInMonth) * 100
+  const salaryProgress = stats.monthlySalary ? (stats.earnedSalary / stats.monthlySalary) * 100 : 0
+  const attendanceProgress = stats.totalDaysInMonth ? (stats.presentDays / stats.totalDaysInMonth) * 100 : 0
 
   const handleAttendanceAction = async () => {
     const token = localStorage.getItem('token')
