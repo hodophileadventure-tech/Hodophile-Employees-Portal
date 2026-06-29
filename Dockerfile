@@ -21,9 +21,6 @@ COPY . .
 # Build Next.js app
 RUN npm run build
 
-# Ensure public directory exists for production copy
-RUN mkdir -p /app/public
-
 # Production stage
 FROM node:20-alpine
 
@@ -50,7 +47,7 @@ COPY prisma ./prisma/
 
 # Copy built app from builder
 COPY --from=builder /app/.next /app/.next
-COPY --from=builder /app/public /app/public
+COPY public ./public
 
 # Set environment
 ENV NODE_ENV=production
