@@ -9,7 +9,7 @@
   }
 
   body {
-    @apply bg-white text-slate-900 antialiased;
+    @apply antialiased bg-background text-text;
   }
 
   h1 {
@@ -29,16 +29,21 @@
   }
 
   p {
-    @apply text-base text-slate-600;
+    @apply text-base text-text;
   }
 
   a {
-    @apply text-primary-600 hover:text-primary-700 transition-colors;
+    @apply text-text;
+    transition: color 0.2s ease;
   }
 
   /* Dark Mode */
   :root {
     color-scheme: light;
+    --color-primary: #FCC000;
+    --color-background: #F5F5F5;
+    --color-border: #E5E5E5;
+    --color-text: #2B2B2B;
   }
 
   :root.dark {

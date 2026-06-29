@@ -8,6 +8,10 @@ import ProgressRing from '@/components/premium/ProgressRing'
 
 interface LeadSummary {
   id: string
+  customerName: string
+  customerNumber: string
+  destination: string
+  persons: number
   leadWorth: number
   commission: number
   confirmedAt: string
@@ -26,6 +30,10 @@ export default function SalaryPage() {
     designation: '',
   })
   const [salesLeads, setSalesLeads] = useState<LeadSummary[]>([])
+  const [customerName, setCustomerName] = useState('')
+  const [customerNumber, setCustomerNumber] = useState('')
+  const [destination, setDestination] = useState('')
+  const [persons, setPersons] = useState('')
   const [leadWorth, setLeadWorth] = useState('')
   const [loading, setLoading] = useState(true)
   const [salesLoading, setSalesLoading] = useState(false)
@@ -92,8 +100,8 @@ export default function SalaryPage() {
   }, [])
 
   const handleLeadSubmit = async () => {
-    if (!salaryData.employeeId || !leadWorth) {
-      setMessage('Enter a confirmed sale value first.')
+    if (!salaryData.employeeId || !customerName || !customerNumber || !destination || !persons || !leadWorth) {
+      setMessage('Please fill in all sale lead fields.')
       return
     }
 
@@ -108,12 +116,20 @@ export default function SalaryPage() {
         },
         body: JSON.stringify({
           employeeId: salaryData.employeeId,
+          customerName,
+          customerNumber,
+          destination,
+          persons: Number(persons),
           leadWorth: Number(leadWorth),
         }),
       })
       const data = await response.json()
       if (data.success) {
         setMessage('Confirmed sale recorded successfully.')
+        setCustomerName('')
+        setCustomerNumber('')
+        setDestination('')
+        setPersons('')
         setLeadWorth('')
         fetchSalesData(salaryData.employeeId)
       } else {
@@ -128,44 +144,44 @@ export default function SalaryPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-background text-text min-h-screen px-6 py-8">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Salary</h1>
-        <p className="text-slate-600 dark:text-slate-400 mt-2">Your current month salary information</p>
+        <h1 className="text-3xl font-bold text-primary-500">Salary</h1>
+        <p className="text-text mt-2">Your current month salary information</p>
       </div>
 
       <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         {/* Current Month Summary */}
         <div className="lg:col-span-2">
-          <div className="card-lg bg-white dark:bg-slate-900 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Current Month Summary</h2>
+          <div className="card-lg bg-background border border-border p-6">
+            <h2 className="text-lg font-semibold text-primary-500 mb-6">Current Month Summary</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-6 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-lg">
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Monthly Salary</p>
-                <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">Rs. {salaryData.monthlySalary.toLocaleString()}</p>
+              <div className="p-6 bg-background border border-border rounded-lg">
+                <p className="text-sm text-text mb-2">Monthly Salary</p>
+                <p className="text-2xl font-bold text-text">Rs. {salaryData.monthlySalary.toLocaleString()}</p>
               </div>
 
-              <div className="p-6 bg-gradient-to-br from-success/10 to-success/20 dark:from-success/20 dark:to-success/10 rounded-lg">
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Earned Till Today</p>
-                <p className="text-2xl font-bold text-success">Rs. {salaryData.earnedSalary.toLocaleString()}</p>
+              <div className="p-6 bg-background border border-border rounded-lg">
+                <p className="text-sm text-text mb-2">Earned Till Today</p>
+                <p className="text-2xl font-bold text-text">Rs. {salaryData.earnedSalary.toLocaleString()}</p>
               </div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Salary Calculation</p>
+            <div className="mt-6 pt-6 border-t border-border">
+              <p className="text-sm text-text mb-4">Salary Calculation</p>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">Days Worked</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{salaryData.presentDays} / {salaryData.totalDays} days</span>
+                  <span className="text-sm text-text">Days Worked</span>
+                  <span className="font-semibold text-text">{salaryData.presentDays} / {salaryData.totalDays} days</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">Daily Salary</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">Rs. {(salaryData.monthlySalary / salaryData.totalDays).toFixed(0).toLocaleString()}</span>
+                  <span className="text-sm text-text">Daily Salary</span>
+                  <span className="font-semibold text-text">Rs. {(salaryData.monthlySalary / salaryData.totalDays).toFixed(0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">Earned Salary</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">Rs. {salaryData.earnedSalary.toLocaleString()}</span>
+                  <span className="text-sm text-text">Earned Salary</span>
+                  <span className="font-semibold text-text">Rs. {salaryData.earnedSalary.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -173,45 +189,82 @@ export default function SalaryPage() {
         </div>
 
         {/* Progress */}
-        <div className="card-lg bg-white dark:bg-slate-900 p-6 flex flex-col items-center justify-center">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-8 w-full">Salary Progress</h2>
+        <div className="card-lg bg-background border border-border p-6 flex flex-col items-center justify-center">
+          <h2 className="text-lg font-semibold text-primary-500 mb-8 w-full">Salary Progress</h2>
 
-          <ProgressRing value={salaryData.earnedSalary} max={salaryData.monthlySalary} size={140} color="#10b981" label="Earned" sublabel="This Month" icon={<DollarSign size={24} className="text-success" />} />
+          <ProgressRing value={salaryData.earnedSalary} max={salaryData.monthlySalary} size={140} label="Earned" sublabel="This Month" icon={<DollarSign size={24} className="text-text" />} />
         </div>
       </motion.div>
 
       {salaryData.designation.toLowerCase().includes('sales executive') ? (
-        <motion.div className="card-lg bg-white dark:bg-slate-900 p-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Sales Commission</h2>
+        <motion.div className="card-lg bg-background border border-border p-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
+          <h2 className="text-lg font-semibold text-primary-500 mb-6">Sales Commission</h2>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Confirmed Commission</p>
-              <p className="mt-3 text-2xl font-semibold text-slate-900 dark:text-white">Rs. {salaryData.commissionEarned.toLocaleString()}</p>
+            <div className="rounded-3xl border border-border bg-background p-5">
+              <p className="text-sm text-text">Confirmed Commission</p>
+              <p className="mt-3 text-2xl font-semibold text-text">Rs. {salaryData.commissionEarned.toLocaleString()}</p>
             </div>
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Incentive</p>
-              <p className="mt-3 text-2xl font-semibold text-slate-900 dark:text-white">Rs. {salaryData.monthlyIncentive.toLocaleString()}</p>
+            <div className="rounded-3xl border border-border bg-background p-5">
+              <p className="text-sm text-text">Incentive</p>
+              <p className="mt-3 text-2xl font-semibold text-text">Rs. {salaryData.monthlyIncentive.toLocaleString()}</p>
             </div>
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Estimated Total Pay</p>
-              <p className="mt-3 text-2xl font-semibold text-slate-900 dark:text-white">Rs. {salaryData.totalPay.toLocaleString()}</p>
+            <div className="rounded-3xl border border-border bg-background p-5">
+              <p className="text-sm text-text">Estimated Total Pay</p>
+              <p className="mt-3 text-2xl font-semibold text-text">Rs. {salaryData.totalPay.toLocaleString()}</p>
             </div>
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-950">
-              <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Confirm a Sale</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                Enter the confirmed lead worth to record commission for this month.
+            <div className="rounded-3xl border border-border bg-background p-6">
+              <h3 className="text-base font-semibold text-primary-500 mb-4">Confirm a Sale</h3>
+              <p className="text-sm text-text mb-4">
+                Enter the confirmed lead details to record commission for this month.
               </p>
-              <label className="block text-sm text-slate-700 dark:text-slate-300">
+              <label className="block text-sm text-text">
+                Customer Name
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(event) => setCustomerName(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-text outline-none transition focus:border-primary-500"
+                />
+              </label>
+              <label className="block text-sm text-text mt-4">
+                Customer Number
+                <input
+                  type="text"
+                  value={customerNumber}
+                  onChange={(event) => setCustomerNumber(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-text outline-none transition focus:border-primary-500"
+                />
+              </label>
+              <label className="block text-sm text-text mt-4">
+                Destination
+                <input
+                  type="text"
+                  value={destination}
+                  onChange={(event) => setDestination(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-text outline-none transition focus:border-primary-500"
+                />
+              </label>
+              <label className="block text-sm text-text mt-4">
+                No. of Persons
+                <input
+                  type="number"
+                  value={persons}
+                  onChange={(event) => setPersons(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-text outline-none transition focus:border-primary-500"
+                  min={1}
+                />
+              </label>
+              <label className="block text-sm text-text mt-4">
                 Confirmed Sale Value
                 <input
                   type="number"
                   value={leadWorth}
                   onChange={(event) => setLeadWorth(event.target.value)}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-primary-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-text outline-none transition focus:border-primary-500"
                   min={0}
                 />
               </label>
@@ -219,27 +272,29 @@ export default function SalaryPage() {
                 type="button"
                 onClick={handleLeadSubmit}
                 disabled={salesLoading}
-                className="mt-4 inline-flex items-center justify-center w-full rounded-xl bg-primary-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-4 inline-flex items-center justify-center w-full rounded-xl bg-primary-500 px-4 py-3 text-sm font-semibold text-text transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {salesLoading ? 'Submitting…' : 'Confirm Sale'}
               </button>
-              {message ? <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">{message}</p> : null}
+              {message ? <p className="mt-3 text-sm text-text">{message}</p> : null}
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-950">
-              <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Confirmed Leads</h3>
+            <div className="rounded-3xl border border-border bg-background p-6">
+              <h3 className="text-base font-semibold text-primary-500 mb-4">Confirmed Leads</h3>
               {salesLeads.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400">No confirmed sales yet.</p>
+                <p className="text-sm text-text">No confirmed sales yet.</p>
               ) : (
                 <div className="space-y-4">
                   {salesLeads.map((lead) => (
-                    <div key={lead.id} className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+                    <div key={lead.id} className="rounded-2xl border border-border bg-background p-4">
                       <div className="flex items-center justify-between gap-4">
                         <div>
-                          <p className="text-sm font-medium text-slate-900 dark:text-white">Rs. {lead.leadWorth.toLocaleString()}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">Commission: Rs. {lead.commission.toLocaleString()}</p>
+                          <p className="text-sm font-medium text-text">{lead.customerName}</p>
+                          <p className="text-xs text-text">{lead.customerNumber} · {lead.destination} · {lead.persons} person{lead.persons === 1 ? '' : 's'}</p>
+                          <p className="text-xs text-text mt-1">Rs. {lead.leadWorth.toLocaleString()}</p>
+                          <p className="text-xs text-text">Commission: Rs. {lead.commission.toLocaleString()}</p>
                         </div>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">{new Date(lead.confirmedAt).toLocaleDateString()}</span>
+                        <span className="text-xs text-text">{new Date(lead.confirmedAt).toLocaleDateString()}</span>
                       </div>
                     </div>
                   ))}

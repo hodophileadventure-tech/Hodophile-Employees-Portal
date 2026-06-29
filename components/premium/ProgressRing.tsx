@@ -23,7 +23,7 @@ export default function ProgressRing({
   label,
   sublabel,
   icon,
-  color = '#2563eb',
+  color = 'var(--color-primary)',
 }: ProgressRingProps) {
   const percentage = (value / max) * 100
   const radius = (size - strokeWidth) / 2
