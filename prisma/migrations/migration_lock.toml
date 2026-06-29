@@ -2,3 +2,4 @@
 # It should be added to your version-control system (i.e. Git)
 contentHash = "e1e6c6e6c6c6c6c6c6c6c6c6c6c6c6c6"
 engine = "postgresql"
+provider = "postgresql"
