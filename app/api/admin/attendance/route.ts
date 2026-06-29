@@ -10,6 +10,104 @@ const logAttendanceSchema = z.object({
   checkOutTime: z.string(), // HH:MM format
 })
 
+const attendanceQuerySchema = z.object({
+  mode: z.enum(['daily', 'monthly']).optional(),
+  date: z.string().optional(),
+  month: z.string().optional(),
+})
+
+export async function GET(request: NextRequest) {
+  try {
+    const url = new URL(request.url)
+    const validated = attendanceQuerySchema.parse({
+      mode: url.searchParams.get('mode') ?? 'daily',
+      date: url.searchParams.get('date') ?? undefined,
+      month: url.searchParams.get('month') ?? undefined,
+    })
+
+    const today = new Date()
+    let startDate = new Date(today)
+    let endDate = new Date(today)
+
+    if (validated.mode === 'daily') {
+      if (validated.date) {
+        startDate = new Date(validated.date)
+      }
+      startDate.setHours(0, 0, 0, 0)
+      endDate = new Date(startDate)
+      endDate.setHours(23, 59, 59, 999)
+    } else {
+      const [year, month] = validated.month
+        ? validated.month.split('-').map(Number)
+        : [today.getFullYear(), today.getMonth() + 1]
+
+      startDate = new Date(year, month - 1, 1)
+      endDate = new Date(year, month, 1)
+    }
+
+    const [totalEmployees, attendanceRecords] = await Promise.all([
+      prisma.employee.count({ where: { status: 'ACTIVE' } }),
+      prisma.attendance.findMany({
+        where: {
+          date: {
+            gte: startDate,
+            lt: endDate,
+          },
+        },
+        include: {
+          employee: {
+            select: {
+              fullName: true,
+              employeeId: true,
+            },
+          },
+        },
+        orderBy: {
+          checkInTime: 'desc',
+        },
+      }),
+    ])
+
+    const presentCount = attendanceRecords.filter(
+      (record) => record.status === 'PRESENT' || record.status === 'LATE'
+    ).length
+    const lateCount = attendanceRecords.filter(
+      (record) => record.status === 'LATE'
+    ).length
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        summary: {
+          totalEmployees,
+          presentCount,
+          lateCount,
+          absentCount:
+            validated.mode === 'daily'
+              ? Math.max(totalEmployees - presentCount, 0)
+              : undefined,
+          totalRecords: attendanceRecords.length,
+        },
+        records: attendanceRecords,
+      },
+    })
+  } catch (error) {
+    console.error('Failed to fetch attendance records:', error)
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid query parameters', errors: error.errors },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch attendance records' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -47,10 +145,13 @@ export async function POST(request: NextRequest) {
       const [reportingHour, reportingMinute] = employee.reportingTime
         .split(':')
         .map(Number)
-      const reportingDate = new Date(`${validated.date}T${employee.reportingTime}:00`)
+      const reportingDate = new Date(
+        `${validated.date}T${employee.reportingTime}:00`
+      )
 
       // Check if employee is late (more than 30 minutes)
-      const minutesLate = (checkInTime.getTime() - reportingDate.getTime()) / (1000 * 60)
+      const minutesLate =
+        (checkInTime.getTime() - reportingDate.getTime()) / (1000 * 60)
       if (minutesLate > 30) {
         status = 'LATE'
         isLate = true
