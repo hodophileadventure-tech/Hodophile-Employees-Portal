@@ -28,12 +28,10 @@ async function getEmployee(id: string) {
   })
 }
 
-export default async function EmployeeDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }> | { id: string }
-}) {
-  const employee = await getEmployee(params.id)
+export default async function EmployeeDetailPage({ params }: any) {
+  const resolvedParams = await params
+  const id = resolvedParams.id
+  const employee = await getEmployee(id)
 
   if (!employee) {
     notFound()
