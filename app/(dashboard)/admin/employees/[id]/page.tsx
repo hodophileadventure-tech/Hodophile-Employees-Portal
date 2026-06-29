@@ -31,7 +31,7 @@ async function getEmployee(id: string) {
 export default async function EmployeeDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }> | { id: string }
 }) {
   const employee = await getEmployee(params.id)
 
