@@ -37,6 +37,8 @@ export default function EmployeeDashboard() {
     workingHours: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [attendanceMessage, setAttendanceMessage] = useState<string | null>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -66,6 +68,48 @@ export default function EmployeeDashboard() {
 
   const salaryProgress = (stats.earnedSalary / stats.monthlySalary) * 100
   const attendanceProgress = (stats.presentDays / stats.totalDaysInMonth) * 100
+
+  const handleAttendanceAction = async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setAttendanceMessage('Please log in first')
+      return
+    }
+
+    setIsSubmitting(true)
+    setAttendanceMessage(null)
+
+    try {
+      const action = !stats.checkInTime ? 'check-in' : stats.checkOutTime ? 'check-in' : 'check-out'
+      const response = await fetch('/api/employee/attendance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        const record = data.data
+        setStats((s) => ({
+          ...s,
+          checkInTime: record.checkInTime || s.checkInTime,
+          checkOutTime: record.checkOutTime || s.checkOutTime,
+          workingHours: record.workingHours ?? s.workingHours,
+        }))
+        setAttendanceMessage(data.message)
+      } else {
+        setAttendanceMessage(data.message || 'Unable to update attendance')
+      }
+    } catch (error) {
+      console.error('Attendance update failed', error)
+      setAttendanceMessage('Unable to update attendance')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -167,7 +211,7 @@ export default function EmployeeDashboard() {
               <CheckCircle size={24} className="text-success" />
             </div>
 
-            {stats.checkOutTime ? (
+            {stats.checkInTime && !stats.checkOutTime ? (
               <div className="flex items-center justify-between p-4 bg-primary-10 dark:bg-primary-20 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Clock size={20} className="text-primary-600" />
@@ -176,16 +220,30 @@ export default function EmployeeDashboard() {
                       Check Out
                     </p>
                     <p className="font-semibold text-slate-900 dark:text-white">
-                      {stats.checkOutTime}
+                      {stats.checkOutTime || 'Pending'}
                     </p>
                   </div>
                 </div>
               </div>
-            ) : (
-              <button className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors">
-                Check Out
-              </button>
-            )}
+            ) : null}
+
+            <button
+              onClick={handleAttendanceAction}
+              disabled={isSubmitting || (!!stats.checkInTime && !!stats.checkOutTime)}
+              className="w-full py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-medium rounded-lg transition-colors"
+            >
+              {isSubmitting
+                ? 'Processing...'
+                : !stats.checkInTime
+                ? 'Check In'
+                : stats.checkOutTime
+                ? 'Checked Out Today'
+                : 'Check Out'}
+            </button>
+
+            {attendanceMessage ? (
+              <p className="text-sm text-slate-600 dark:text-slate-400">{attendanceMessage}</p>
+            ) : null}
 
             <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
               <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">

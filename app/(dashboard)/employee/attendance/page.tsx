@@ -41,22 +41,24 @@ export default function AttendancePage() {
     const fetchAttendance = async () => {
       try {
         setLoading(true)
-        const userEmail = localStorage.getItem('userEmail')
-        
-        if (!userEmail) {
+        const token = localStorage.getItem('token')
+
+        if (!token) {
           toast.error('Please log in first')
           return
         }
 
-        const params = new URLSearchParams({
-          email: userEmail,
-        })
+        const params = new URLSearchParams()
 
         if (month) {
           params.append('month', month)
         }
 
-        const response = await fetch(`/api/employee/attendance?${params}`)
+        const response = await fetch(`/api/employee/attendance?${params}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
         const data = await response.json()
 
         if (data.success) {
