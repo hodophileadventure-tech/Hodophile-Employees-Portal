@@ -12,13 +12,14 @@ import {
   FileText,
 } from 'lucide-react'
 import StatCard from '@/components/premium/StatCard'
-import { prisma } from '@/lib/prisma'
 
 interface DashboardStats {
   totalEmployees: number
   presentToday: number
   absentToday: number
   monthlyExpense: number
+  departments: Array<{ name: string; count: number; percentage: number }>
+  recentActivity: Array<{ action: string; activity: string; time: string }>
 }
 
 export default function AdminDashboard() {
@@ -27,20 +28,19 @@ export default function AdminDashboard() {
     presentToday: 0,
     absentToday: 0,
     monthlyExpense: 0,
+    departments: [],
+    recentActivity: [],
   })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Since we're using Next.js, we'll simulate data
-        // In a real app, you'd fetch from API
-        setStats({
-          totalEmployees: 125,
-          presentToday: 98,
-          absentToday: 15,
-          monthlyExpense: 7850000,
-        })
+        const response = await fetch('/api/admin/dashboard')
+        const data = await response.json()
+        if (data.success) {
+          setStats(data.data)
+        }
       } catch (error) {
         console.error('Failed to fetch stats:', error)
       } finally {
@@ -152,37 +152,35 @@ export default function AdminDashboard() {
           </h2>
 
           <div className="space-y-4">
-            {[
-              { name: 'Engineering', count: 42, percentage: 34 },
-              { name: 'Product', count: 18, percentage: 14 },
-              { name: 'Design', count: 24, percentage: 19 },
-              { name: 'QA', count: 20, percentage: 16 },
-              { name: 'Operations', count: 21, percentage: 17 },
-            ].map((dept, index) => (
-              <motion.div
-                key={dept.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + index * 0.05 }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {dept.name}
-                  </span>
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    {dept.count}
-                  </span>
-                </div>
-                <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-primary-500 to-primary-600"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${dept.percentage}%` }}
-                    transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
-                  />
-                </div>
-              </motion.div>
-            ))}
+            {stats.departments.length > 0 ? (
+              stats.departments.map((dept, index) => (
+                <motion.div
+                  key={dept.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 + index * 0.05 }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      {dept.name}
+                    </span>
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      {dept.count}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-primary-500 to-primary-600"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${dept.percentage}%` }}
+                      transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
+                    />
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400">No department data yet.</p>
+            )}
           </div>
         </div>
       </motion.div>
@@ -202,33 +200,31 @@ export default function AdminDashboard() {
         </div>
 
         <div className="space-y-4">
-          {[
-            { action: 'Ahmed Hassan', activity: 'Checked in', time: '09:15 AM' },
-            { action: 'Fatima Khan', activity: 'Checked in', time: '09:32 AM' },
-            { action: 'Muhammad Ali', activity: 'Checked out', time: '05:45 PM' },
-            { action: 'New Employee', activity: 'Added: Zainab Ali', time: 'Today' },
-            { action: 'Salary', activity: 'Processed for May 2024', time: 'Yesterday' },
-          ].map((item, index) => (
-            <motion.div
-              key={index}
-              className="flex items-center justify-between py-3 border-b border-slate-200 dark:border-slate-700 last:border-0"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7 + index * 0.05 }}
-            >
-              <div>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">
-                  {item.action}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  {item.activity}
-                </p>
-              </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                {item.time}
-              </span>
-            </motion.div>
-          ))}
+          {stats.recentActivity.length > 0 ? (
+            stats.recentActivity.map((item, index) => (
+              <motion.div
+                key={`${item.action}-${item.time}-${index}`}
+                className="flex items-center justify-between py-3 border-b border-slate-200 dark:border-slate-700 last:border-0"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.7 + index * 0.05 }}
+              >
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">
+                    {item.action}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {item.activity}
+                  </p>
+                </div>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {item.time}
+                </span>
+              </motion.div>
+            ))
+          ) : (
+            <p className="text-sm text-slate-500 dark:text-slate-400">No recent activity yet.</p>
+          )}
         </div>
       </motion.div>
     </div>
