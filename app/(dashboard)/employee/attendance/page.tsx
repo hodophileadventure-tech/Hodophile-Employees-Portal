@@ -165,89 +165,91 @@ export default function AttendancePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >
-        {loading ? (
-          <div className="px-6 py-8 text-center">
-            <p className="text-slate-600 dark:text-slate-400">Loading attendance data...</p>
-          </div>
-        ) : records.length === 0 ? (
-          <div className="px-6 py-8 text-center">
-            <p className="text-slate-600 dark:text-slate-400">No attendance records for this month</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-900 dark:text-white uppercase">
-                    Date
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-900 dark:text-white uppercase">
-                    Check In
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-900 dark:text-white uppercase">
-                    Check Out
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-900 dark:text-white uppercase">
-                    Working Hours
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-900 dark:text-white uppercase">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {records.map((record) => (
-                  <tr
-                    key={record.id}
-                    className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                  >
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-slate-900 dark:text-white">
-                        {formatDate(new Date(record.date))}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {formatTime(record.checkInTime)}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {formatTime(record.checkOutTime)}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-slate-900 dark:text-white">
-                        {record.workingHours ? `${record.workingHours}h` : '--'}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                          record.status === 'PRESENT'
-                            ? 'bg-success/20 text-success'
-                            : record.status === 'ABSENT'
-                            ? 'bg-danger/20 text-danger'
-                            : record.status === 'LATE'
-                            ? 'bg-warning/20 text-warning'
-                            : 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                        }`}
-                      >
-                        {record.status === 'PRESENT'
-                          ? '● Present'
-                          : record.status === 'ABSENT'
-                          ? '● Absent'
-                          : record.status === 'LATE'
-                          ? '● Late'
-                          : '● Half Day'}
-                      </span>
-                    </td>
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+            Attendance Records
+          </h2>
+
+          {loading ? (
+            <div className="text-center py-8">
+              <p className="text-slate-600 dark:text-slate-400">Loading attendance data...</p>
+            </div>
+          ) : records.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-slate-600 dark:text-slate-400">No attendance records for this month</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-300 dark:border-slate-700">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                      Check In
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                      Check Out
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                      Working Hours
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                      Status
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {records.map((record, index) => (
+                    <tr
+                      key={record.id}
+                      className={`border-b border-slate-200 dark:border-slate-700 transition-colors ${
+                        index % 2 === 0
+                          ? 'bg-white dark:bg-slate-900'
+                          : 'bg-slate-50 dark:bg-slate-800/50'
+                      } hover:bg-slate-100 dark:hover:bg-slate-700`}
+                    >
+                      <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
+                        {formatDate(new Date(record.date))}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
+                        {formatTime(record.checkInTime)}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
+                        {formatTime(record.checkOutTime)}
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                        {record.workingHours ? `${record.workingHours.toFixed(2)} hrs` : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                            record.status === 'PRESENT'
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200'
+                              : record.status === 'ABSENT'
+                              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                              : record.status === 'LATE'
+                              ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
+                              : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200'
+                          }`}
+                        >
+                          {record.status === 'PRESENT'
+                            ? '✓ Present'
+                            : record.status === 'ABSENT'
+                            ? '✗ Absent'
+                            : record.status === 'LATE'
+                            ? '⚠ Late'
+                            : '◐ Half Day'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </motion.div>
     </div>
   )
