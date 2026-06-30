@@ -21,6 +21,7 @@ export default function AddEmployeePage() {
     emergencyContactNumber: '',
     designation: '',
     department: '',
+    password: '',
     monthlySalary: 0,
     joiningDate: '',
   })
@@ -128,6 +129,20 @@ export default function AddEmployeePage() {
                   placeholder="Enter email"
                   className="input w-full"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={(formData as any).password}
+                  onChange={handleInputChange}
+                  placeholder="Set password (min 6 chars)"
+                  className="input w-full"
                 />
               </div>
 

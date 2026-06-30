@@ -16,6 +16,7 @@ const createEmployeeSchema = z.object({
   department: z.string(),
   monthlySalary: z.number(),
   joiningDate: z.string(),
+  password: z.string().min(6).optional(),
   reportingTime: z.string().optional(),
   logoutTime: z.string().optional(),
 })
@@ -78,8 +79,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate default password
-    const defaultPassword = 'emp123'
+    // Use provided password if available, otherwise generate default
+    const providedPassword = (body.password as string) || undefined
+    const defaultPassword = providedPassword || 'emp123'
     const hashedPassword = await bcrypt.hash(defaultPassword, 10)
 
     // Create user account
