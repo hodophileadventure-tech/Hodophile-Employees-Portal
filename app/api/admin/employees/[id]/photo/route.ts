@@ -1,20 +1,22 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import fs from 'fs'
 import path from 'path'
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  try {
-    const formData = await (request as any).formData()
-    const file = formData.get('file') as File | null
 
-    if (!file) {
+  try {
+    const formData = await request.formData()
+    const file = formData.get('file')
+
+    if (!file || typeof file === 'string') {
       return NextResponse.json({ success: false, message: 'No file uploaded' }, { status: 400 })
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'profiles')
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads', 'profiles')
     await fs.promises.mkdir(uploadsDir, { recursive: true })
 
     const extMatch = (file.name || '').match(/\.([0-9a-zA-Z]+)$/)

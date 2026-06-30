@@ -40,6 +40,7 @@ export async function GET() {
       prisma.employee.count({ where: { status: 'ACTIVE' } }),
       prisma.employee.findMany({
         select: {
+          id: true,
           department: true,
           fullName: true,
           status: true,
