@@ -24,6 +24,9 @@ export default function AddEmployeePage() {
     password: '',
     monthlySalary: 0,
     joiningDate: '',
+    reportingTime: '',
+    logoutTime: '',
+    workingDays: '',
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -264,6 +267,51 @@ export default function AddEmployeePage() {
                   className="input w-full"
                   required
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Reporting Time
+                </label>
+                <input
+                  type="time"
+                  name="reportingTime"
+                  value={formData.reportingTime}
+                  onChange={handleInputChange}
+                  className="input w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Logout Time
+                </label>
+                <input
+                  type="time"
+                  name="logoutTime"
+                  value={formData.logoutTime}
+                  onChange={handleInputChange}
+                  className="input w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Working Days
+                </label>
+                <select
+                  name="workingDays"
+                  value={formData.workingDays}
+                  onChange={handleInputChange}
+                  className="input w-full"
+                >
+                  <option value="">Select working days</option>
+                  <option value="MON-FRI">MON to FRI</option>
+                  <option value="MON-SAT">MON to SAT</option>
+                  <option value="MON-SUN">MON to SUN</option>
+                </select>
               </div>
             </div>
           </div>

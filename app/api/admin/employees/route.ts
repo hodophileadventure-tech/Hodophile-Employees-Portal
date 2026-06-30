@@ -19,6 +19,7 @@ const createEmployeeSchema = z.object({
   password: z.string().min(6).optional(),
   reportingTime: z.string().optional(),
   logoutTime: z.string().optional(),
+  workingDays: z.string().optional(),
 })
 
 export async function GET(request: NextRequest) {
@@ -112,6 +113,9 @@ export async function POST(request: NextRequest) {
         department: validated.department,
         monthlySalary: validated.monthlySalary,
         joiningDate: new Date(validated.joiningDate),
+        reportingTime: validated.reportingTime,
+        logoutTime: validated.logoutTime,
+        workingDays: validated.workingDays,
         employeeId,
         status: 'ACTIVE',
       },

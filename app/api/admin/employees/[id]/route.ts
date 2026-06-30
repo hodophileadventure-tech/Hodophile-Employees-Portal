@@ -11,6 +11,9 @@ const updateEmployeeSchema = z.object({
   designation: z.string().optional(),
   department: z.string().optional(),
   monthlySalary: z.number().optional(),
+  reportingTime: z.string().optional(),
+  logoutTime: z.string().optional(),
+  workingDays: z.string().optional(),
 })
 
 export async function GET(

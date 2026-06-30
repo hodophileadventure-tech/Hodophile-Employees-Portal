@@ -19,6 +19,9 @@ interface Employee {
   department: string
   monthlySalary: number
   joiningDate?: string
+  reportingTime?: string | null
+  logoutTime?: string | null
+  workingDays?: string | null
   status: string
   user: {
     id: string
@@ -48,6 +51,9 @@ export default function EditEmployeePage() {
     department: '',
     monthlySalary: 0,
     status: 'ACTIVE',
+    reportingTime: '',
+    logoutTime: '',
+    workingDays: '',
   })
 
   useEffect(() => {
@@ -67,6 +73,9 @@ export default function EditEmployeePage() {
             department: data.data.department,
             monthlySalary: data.data.monthlySalary,
             status: data.data.status,
+            reportingTime: data.data.reportingTime || '',
+            logoutTime: data.data.logoutTime || '',
+            workingDays: data.data.workingDays || '',
           })
         }
       } catch (error) {
@@ -349,6 +358,51 @@ export default function EditEmployeePage() {
                   {departments.map(dept => (
                     <option key={dept} value={dept}>{dept}</option>
                   ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Reporting Time
+                </label>
+                <input
+                  type="time"
+                  name="reportingTime"
+                  value={formData.reportingTime}
+                  onChange={handleInputChange}
+                  className="input w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Logout Time
+                </label>
+                <input
+                  type="time"
+                  name="logoutTime"
+                  value={formData.logoutTime}
+                  onChange={handleInputChange}
+                  className="input w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Working Days
+                </label>
+                <select
+                  name="workingDays"
+                  value={formData.workingDays}
+                  onChange={handleInputChange}
+                  className="input w-full"
+                >
+                  <option value="">Select working days</option>
+                  <option value="MON-FRI">MON to FRI</option>
+                  <option value="MON-SAT">MON to SAT</option>
+                  <option value="MON-SUN">MON to SUN</option>
                 </select>
               </div>
             </div>
