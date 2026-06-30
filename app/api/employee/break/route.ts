@@ -1,32 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import jwt from 'jsonwebtoken'
+import { verifyAuth } from '@/lib/auth'
 
-function getEmployeeIdFromToken(token: string): string | null {
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any
-    return decoded.employeeId
-  } catch {
-    return null
-  }
+async function getEmployeeIdFromAuthHeader(authHeader: string | null) {
+  const authUser = verifyAuth(authHeader)
+  if (!authUser?.id) return null
+
+  const employee = await prisma.employee.findUnique({
+    where: { userId: authUser.id },
+  })
+
+  return employee?.id ?? null
 }
 
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.replace('Bearer ', '')
-    const employeeId = getEmployeeIdFromToken(token)
+    const employeeId = await getEmployeeIdFromAuthHeader(authHeader)
 
     if (!employeeId) {
       return NextResponse.json(
-        { success: false, message: 'Invalid token' },
+        { success: false, message: 'Unauthorized' },
         { status: 401 }
       )
     }
@@ -168,19 +162,11 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.replace('Bearer ', '')
-    const employeeId = getEmployeeIdFromToken(token)
+    const employeeId = await getEmployeeIdFromAuthHeader(authHeader)
 
     if (!employeeId) {
       return NextResponse.json(
-        { success: false, message: 'Invalid token' },
+        { success: false, message: 'Unauthorized' },
         { status: 401 }
       )
     }
