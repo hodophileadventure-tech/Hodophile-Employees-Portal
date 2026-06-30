@@ -9,7 +9,9 @@
   }
 
   body {
-    @apply antialiased bg-background text-text;
+    @apply antialiased;
+    background-color: #F5F5F5;
+    color: #2B2B2B;
   }
 
   h1 {
@@ -29,21 +31,18 @@
   }
 
   p {
-    @apply text-base text-text;
+    @apply text-base;
+    color: #2B2B2B;
   }
 
   a {
-    @apply text-text;
+    color: #2B2B2B;
     transition: color 0.2s ease;
   }
 
   /* Dark Mode */
   :root {
     color-scheme: light;
-    --color-primary: #FCC000;
-    --color-background: #F5F5F5;
-    --color-border: #E5E5E5;
-    --color-text: #2B2B2B;
   }
 
   :root.dark {

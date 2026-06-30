@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
+import BrandLogo from '@/components/layout/BrandLogo'
 
 interface SidebarProps {
   isOpen: boolean
@@ -131,14 +132,7 @@ export default function Sidebar({ isOpen, role, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
           <Link href={role === 'ADMIN' ? '/admin/dashboard' : '/employee/dashboard'}>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">HD</span>
-              </div>
-              <span className="font-bold text-slate-900 dark:text-white">
-                Hodophile
-              </span>
-            </div>
+            <BrandLogo compact />
           </Link>
           {onClose && (
             <button

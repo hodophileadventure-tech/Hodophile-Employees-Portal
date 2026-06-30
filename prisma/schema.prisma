@@ -113,17 +113,21 @@ model SalaryRecord {
 
 // Sales Lead model
 model SalesLead {
-  id          String    @id @default(cuid())
-  employeeId  String
-  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  
-  leadWorth   Float     // Worth of the lead in PKR
-  confirmed   Boolean   @default(false)  // Whether lead is confirmed
-  confirmedAt DateTime?
-  commission  Float     @default(0)  // Calculated commission: 500 if <= 25000, 1000 if > 25000
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  employeeId     String
+  employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  customerName   String
+  customerNumber String
+  destination    String
+  persons        Int
+  leadWorth      Float     // Worth of the lead in PKR
+  confirmed      Boolean   @default(false)  // Whether lead is confirmed
+  confirmedAt    DateTime?
+  commission     Float     @default(0)  // Calculated commission: 500 if <= 25000, 1000 if > 25000
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([employeeId])
   @@index([confirmedAt])

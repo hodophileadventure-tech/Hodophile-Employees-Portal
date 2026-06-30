@@ -5,6 +5,10 @@ import { z } from 'zod'
 
 const confirmLeadSchema = z.object({
   employeeId: z.string(),
+  customerName: z.string().min(1, 'Customer name is required'),
+  customerNumber: z.string().min(1, 'Customer number is required'),
+  destination: z.string().min(1, 'Destination is required'),
+  persons: z.number().int().positive('Number of persons must be greater than 0'),
   leadWorth: z.number().positive(),
 })
 
@@ -48,6 +52,10 @@ export async function POST(request: NextRequest) {
     const lead = await prisma.salesLead.create({
       data: {
         employeeId: validated.employeeId,
+        customerName: validated.customerName,
+        customerNumber: validated.customerNumber,
+        destination: validated.destination,
+        persons: validated.persons,
         leadWorth: validated.leadWorth,
         confirmed: true,
         confirmedAt: new Date(),
