@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -40,7 +40,9 @@ export default function EditEmployeePage() {
   const [saving, setSaving] = useState(false)
   const [employee, setEmployee] = useState<Employee | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
@@ -188,30 +190,64 @@ export default function EditEmployeePage() {
               </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Profile Picture</label>
-                <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files ? e.target.files[0] : null)} />
-                <div className="mt-2 flex gap-2">
-                  <button type="button" onClick={async () => {
-                    if (!photoFile) return
-                    setUploading(true)
-                    try {
-                      const fd = new FormData()
-                      fd.append('file', photoFile)
-                      const res = await fetch(`/api/admin/employees/${id}/photo`, { method: 'POST', body: fd })
-                      const json = await res.json()
-                      if (json.success) {
-                        setEmployee(json.data.employee)
-                        // refresh parent maybe
-                      } else {
-                        toast.error(json.message || 'Upload failed')
-                      }
-                    } catch (e) {
-                      console.error('Upload error', e)
-                      toast.error('Upload failed')
-                    } finally {
-                      setUploading(false)
-                      setPhotoFile(null)
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files ? e.target.files[0] : null
+                    if (photoPreviewUrl) {
+                      URL.revokeObjectURL(photoPreviewUrl)
                     }
-                  }} className="px-4 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-50" disabled={uploading}>
+                    setPhotoFile(file)
+                    setPhotoPreviewUrl(file ? URL.createObjectURL(file) : null)
+                  }}
+                />
+
+                {photoPreviewUrl ? (
+                  <div className="mt-3">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Preview</p>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={photoPreviewUrl} alt="Preview" className="h-24 w-24 rounded-full object-cover" />
+                  </div>
+                ) : null}
+
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!photoFile) return
+                      setUploading(true)
+                      try {
+                        const fd = new FormData()
+                        fd.append('file', photoFile)
+                        const res = await fetch(`/api/admin/employees/${id}/photo`, { method: 'POST', body: fd })
+                        const json = await res.json()
+                        if (json.success) {
+                          const updatedUrl = json.data.url || json.data.employee?.profilePicture
+                          setEmployee(prev => prev ? { ...prev, profilePicture: updatedUrl } : prev)
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = ''
+                          }
+                          toast.success('Profile picture uploaded successfully')
+                        } else {
+                          toast.error(json.message || 'Upload failed')
+                        }
+                      } catch (e) {
+                        console.error('Upload error', e)
+                        toast.error('Upload failed')
+                      } finally {
+                        setUploading(false)
+                        setPhotoFile(null)
+                        if (photoPreviewUrl) {
+                          URL.revokeObjectURL(photoPreviewUrl)
+                          setPhotoPreviewUrl(null)
+                        }
+                      }
+                    }}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-50"
+                    disabled={uploading}
+                  >
                     {uploading ? 'Uploading…' : 'Upload'}
                   </button>
                 </div>
