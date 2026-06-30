@@ -54,6 +54,7 @@ model Employee {
   
   // Relations
   attendance            Attendance[]
+  breaks                Break[]
   salaryRecords         SalaryRecord[]
   salesLeads            SalesLead[]
   
@@ -76,6 +77,7 @@ model Attendance {
   checkInTime DateTime
   checkOutTime DateTime?
   workingHours Float?   // Calculated field: (checkOutTime - checkInTime) / 3600
+  totalBreakMinutes Int  @default(0)  // Total break time in minutes
   status      String   @default("PRESENT")
   
   createdAt   DateTime  @default(now())
@@ -85,6 +87,24 @@ model Attendance {
   @@index([employeeId])
   @@index([date])
   @@index([status])
+}
+
+// Break model
+model Break {
+  id          String    @id @default(cuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  date        DateTime
+  breakStart  DateTime
+  breakEnd    DateTime?
+  duration    Int?      // Break duration in minutes
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([date])
 }
 
 // Salary Record model

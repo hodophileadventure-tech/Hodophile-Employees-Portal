@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import StatCard from '@/components/premium/StatCard'
 import ProgressRing from '@/components/premium/ProgressRing'
+import BreakButton from '@/components/BreakButton'
 
 interface EmployeeStats {
   monthlySalary: number
@@ -344,6 +345,15 @@ export default function EmployeeDashboard() {
             Attendance Rate: {((stats.presentDays / stats.totalDaysInMonth) * 100).toFixed(1)}%
           </p>
         </div>
+      </motion.div>
+
+      {/* Break Management */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        <BreakButton />
       </motion.div>
 
       {/* Quick Actions */}
