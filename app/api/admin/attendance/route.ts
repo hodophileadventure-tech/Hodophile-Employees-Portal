@@ -142,17 +142,14 @@ export async function POST(request: NextRequest) {
     let isLate = false
 
     if (employee.reportingTime) {
-      const [reportingHour, reportingMinute] = employee.reportingTime
-        .split(':')
-        .map(Number)
       const reportingDate = new Date(
         `${validated.date}T${employee.reportingTime}:00`
       )
 
-      // Check if employee is late (more than 30 minutes)
+      // Check if employee is late (checked in after reporting time)
       const minutesLate =
         (checkInTime.getTime() - reportingDate.getTime()) / (1000 * 60)
-      if (minutesLate > 30) {
+      if (minutesLate > 0) {
         status = 'LATE'
         isLate = true
       }
