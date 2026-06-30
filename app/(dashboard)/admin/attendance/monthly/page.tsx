@@ -3,7 +3,8 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, CheckCircle2, Clock, Users, TrendingUp } from 'lucide-react'
+import { Calendar, CheckCircle2, Clock, Users, TrendingUp, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface AttendanceRecord {
   id: string
@@ -61,6 +62,35 @@ export default function MonthlyAttendancePage() {
       month: 'short',
       day: 'numeric',
     })
+
+  const handleDeleteRecord = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this attendance record?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/attendance/${id}`, {
+        method: 'DELETE',
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        setRecords(records.filter(record => record.id !== id))
+        setSummary(prev => prev ? {
+          ...prev,
+          totalRecords: prev.totalRecords - 1,
+          presentCount: prev.presentCount - (records.find(r => r.id === id)?.status === 'PRESENT' ? 1 : 0),
+          lateCount: prev.lateCount - (records.find(r => r.id === id)?.status === 'LATE' ? 1 : 0),
+        } : null)
+        toast.success('Attendance record deleted successfully')
+      } else {
+        toast.error(data.message || 'Failed to delete attendance record')
+      }
+    } catch (error) {
+      toast.error('Failed to delete attendance record')
+      console.error('Error deleting attendance record:', error)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -154,6 +184,7 @@ export default function MonthlyAttendancePage() {
                 <th className="py-3 pr-6">Check Out</th>
                 <th className="py-3 pr-6">Hours</th>
                 <th className="py-3 pr-6">Status</th>
+                <th className="py-3 pr-6">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -188,6 +219,15 @@ export default function MonthlyAttendancePage() {
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${record.status === 'LATE' ? 'bg-amber-100 text-amber-700 dark:bg-amber-200/20 dark:text-amber-200' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-200/20 dark:text-emerald-200'}`}>
                       {record.status}
                     </span>
+                  </td>
+                  <td className="py-4 pr-6">
+                    <button
+                      onClick={() => handleDeleteRecord(record.id)}
+                      className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 transition"
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

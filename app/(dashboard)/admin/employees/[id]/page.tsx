@@ -10,6 +10,7 @@ import {
   Calendar,
   Users,
   ShieldCheck,
+  Edit,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 
@@ -48,12 +49,20 @@ export default async function EmployeeDetailPage({ params }: any) {
             Employee details for {employee.designation}
           </p>
         </div>
-        <Link
-          href="/admin/employees"
-          className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-        >
-          <ArrowLeft size={16} /> Back to employees
-        </Link>
+        <div className="flex gap-3 flex-wrap">
+          <Link
+            href={`/admin/employees/${id}/edit`}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 text-blue-700 transition hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+          >
+            <Edit size={16} /> Edit Employee
+          </Link>
+          <Link
+            href="/admin/employees"
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          >
+            <ArrowLeft size={16} /> Back to employees
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-8">

@@ -3,7 +3,9 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { DollarSign, ClipboardList, Clock } from 'lucide-react'
+import Link from 'next/link'
+import { DollarSign, ClipboardList, Clock, Edit, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface SalaryRecord {
   id: string
@@ -43,6 +45,29 @@ export default function SalaryRecordsPage() {
 
     fetchRecords()
   }, [])
+
+  const handleDeleteRecord = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this salary record?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/salary/records/${id}`, {
+        method: 'DELETE',
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        setSalaryRecords(salaryRecords.filter(record => record.id !== id))
+        toast.success('Salary record deleted successfully')
+      } else {
+        toast.error(data.message || 'Failed to delete salary record')
+      }
+    } catch (error) {
+      toast.error('Failed to delete salary record')
+      console.error('Error deleting salary record:', error)
+    }
+  }
 
   const pendingCount = salaryRecords.filter((record) => record.status === 'PENDING').length
   const paidCount = salaryRecords.filter((record) => record.status !== 'PENDING').length
@@ -119,6 +144,7 @@ export default function SalaryRecordsPage() {
                 <th className="py-3 pr-6">Month</th>
                 <th className="py-3 pr-6">Net Salary</th>
                 <th className="py-3 pr-6">Status</th>
+                <th className="py-3 pr-6">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -140,6 +166,22 @@ export default function SalaryRecordsPage() {
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${record.status === 'PENDING' ? 'bg-amber-100 text-amber-700 dark:bg-amber-200/20 dark:text-amber-200' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-200/20 dark:text-emerald-200'}`}>
                       {record.status}
                     </span>
+                  </td>
+                  <td className="py-4 pr-6 flex gap-2">
+                    <Link
+                      href={`/admin/salary/records/${record.id}/edit`}
+                      className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition"
+                    >
+                      <Edit size={16} />
+                      Edit
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteRecord(record.id)}
+                      className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 transition"
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

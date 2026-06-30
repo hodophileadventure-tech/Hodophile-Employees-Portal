@@ -314,18 +314,21 @@ export default function EmployeesPage() {
                           <Link
                             href={`/admin/employees/${employee.id}`}
                             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                          >
-                            <Edit size={18} className="text-primary-600" />
-                          </Link>
-                          <button
-                            onClick={() => handleToggleStatus(employee.id)}
-                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                            title="View Details"
                           >
                             <MoreVertical size={18} className="text-slate-400" />
-                          </button>
+                          </Link>
+                          <Link
+                            href={`/admin/employees/${employee.id}/edit`}
+                            className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                            title="Edit Employee"
+                          >
+                            <Edit size={18} className="text-blue-600" />
+                          </Link>
                           <button
                             onClick={() => handleDelete(employee.id)}
                             className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            title="Delete Employee"
                           >
                             <Trash size={18} className="text-danger" />
                           </button>
