@@ -63,7 +63,7 @@ export default function AddEmployeePage() {
     }
   }
 
-  const departments = ['Engineering', 'Product', 'Design', 'Quality Assurance', 'Operations']
+  const departments = ['Engineering', 'Product', 'Design', 'Quality Assurance', 'Operations', 'Sales']
 
   return (
     <div className="space-y-8">
