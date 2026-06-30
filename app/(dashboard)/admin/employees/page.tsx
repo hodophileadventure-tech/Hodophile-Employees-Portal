@@ -33,6 +33,7 @@ interface Employee {
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
+  const [statusMap, setStatusMap] = useState<Record<string, any>>({})
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [departmentFilter, setDepartmentFilter] = useState('all')
@@ -42,10 +43,17 @@ export default function EmployeesPage() {
     const fetchEmployees = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/admin/employees')
-        const data = await response.json()
-        if (data.success) {
-          setEmployees(data.data)
+        const [empRes, dashRes] = await Promise.all([
+          fetch('/api/admin/employees'),
+          fetch('/api/admin/dashboard'),
+        ])
+        const data = await empRes.json()
+        const dash = await dashRes.json()
+        if (data.success) setEmployees(data.data)
+        if (dash.success && dash.data?.employeeStatuses) {
+          const map: Record<string, any> = {}
+          dash.data.employeeStatuses.forEach((s: any) => (map[s.id] = s))
+          setStatusMap(map)
         }
       } catch (error) {
         console.error('Failed to fetch employees:', error)
@@ -299,15 +307,17 @@ export default function EmployeesPage() {
                         </p>
                       </td>
                       <td className="px-6 py-4">
-                        <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                            employee.status === 'ACTIVE'
-                              ? 'bg-success/20 text-success'
-                              : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                          }`}
-                        >
-                          {employee.status === 'ACTIVE' ? '● Active' : '● Inactive'}
-                        </span>
+                        {statusMap[employee.id] ? (
+                          (() => {
+                            const s = statusMap[employee.id]
+                            if (s.onBreak) return (<span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">On Break · {s.currentBreakDuration}m</span>)
+                            if (s.todaysAttendance && s.todaysAttendance.status === 'LATE') return (<span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Late</span>)
+                            if (s.todaysAttendance && s.todaysAttendance.status === 'ABSENT') return (<span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Absent</span>)
+                            return (<span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${employee.status === 'ACTIVE' ? 'bg-success/20 text-success' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}>{employee.status === 'ACTIVE' ? '● Active' : '● Inactive'}</span>)
+                          })()
+                        ) : (
+                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${employee.status === 'ACTIVE' ? 'bg-success/20 text-success' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}>{employee.status === 'ACTIVE' ? '● Active' : '● Inactive'}</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">

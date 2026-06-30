@@ -95,6 +95,55 @@ export async function GET() {
       }),
     ])
 
+    // For live status, fetch today's breaks and map by employee
+    const todaysBreaks = await prisma.break.findMany({
+      where: {
+        date: {
+          gte: todayStart,
+          lte: todayEnd,
+        },
+      },
+      orderBy: { breakStart: 'desc' },
+    })
+
+    const breakMap = new Map<string, any[]>()
+    todaysBreaks.forEach((b) => {
+      const arr = breakMap.get(b.employeeId) || []
+      arr.push(b)
+      breakMap.set(b.employeeId, arr)
+    })
+
+    // Map employees to include live status
+    const employeeStatuses = await Promise.all(
+      employees.map(async (emp: any) => {
+        // find today's attendance if exists
+        const att = todaysAttendance.find((a: any) => a.employeeId === emp.id)
+        const breaks = breakMap.get(emp.id) || []
+        const onBreak = breaks.some((b) => !b.breakEnd)
+        const lastBreak = breaks[0]
+        let currentBreakDuration = 0
+        if (onBreak) {
+          const active = breaks.find((b) => !b.breakEnd)
+          if (active) {
+            currentBreakDuration = Math.floor((Date.now() - new Date(active.breakStart).getTime()) / 60000)
+          }
+        } else if (lastBreak && lastBreak.duration) {
+          currentBreakDuration = lastBreak.duration
+        }
+
+        return {
+          id: emp.id,
+          fullName: emp.fullName,
+          department: emp.department,
+          status: emp.status,
+          todaysAttendance: att ? { status: att.status, checkInTime: att.checkInTime } : null,
+          onBreak,
+          currentBreakDuration,
+          totalBreaksToday: breaks.length,
+        }
+      })
+    )
+
     const presentToday = todaysAttendance.filter((entry) => entry.status === 'PRESENT' || entry.status === 'LATE').length
     const absentToday = Math.max(totalEmployees - presentToday, 0)
     const monthlyExpense = salaryAggregate._sum.monthlySalary ?? 0
@@ -172,6 +221,7 @@ export async function GET() {
         recentActivity,
         attendanceBreakdown,
         salesAgentPerformance,
+        employeeStatuses,
       },
     })
   } catch (error) {

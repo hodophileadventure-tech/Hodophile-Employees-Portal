@@ -122,18 +122,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 pt-6 border-t border-slate-200">
-            <p className="text-xs text-slate-600 mb-2">Demo Credentials:</p>
-            <div className="bg-slate-50 rounded-lg p-3 text-sm space-y-1">
-              <p className="text-slate-700">
-                <strong>Admin:</strong> admin@hodophile.com / admin123
-              </p>
-              <p className="text-slate-700">
-                <strong>Employee:</strong> ahmed@hodophile.com / emp123
-              </p>
-            </div>
-          </div>
+          
         </div>
 
         {/* Footer */}

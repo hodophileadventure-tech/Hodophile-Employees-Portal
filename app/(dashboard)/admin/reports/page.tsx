@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FileText, TrendingUp, Users, Calendar, DollarSign } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface DashboardStats {
   totalEmployees: number
@@ -28,6 +29,8 @@ export default function ReportsPage() {
   const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null)
   const [salaryRecords, setSalaryRecords] = useState<SalaryRecordSummary[]>([])
   const [loading, setLoading] = useState(true)
+  const [genLoading, setGenLoading] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -68,6 +71,31 @@ export default function ReportsPage() {
         <p className="text-slate-600 dark:text-slate-400 mt-2">
           Review company performance and payroll summaries.
         </p>
+        <div className="mt-3">
+          <button
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white"
+            onClick={async () => {
+              setGenLoading(true)
+              try {
+                const res = await fetch('/api/admin/reports/generate', { method: 'POST' })
+                const json = await res.json()
+                if (json.success) {
+                  // refresh page data
+                  router.refresh()
+                } else {
+                  console.error('Generate failed', json)
+                }
+              } catch (e) {
+                console.error('Failed to generate reports', e)
+              } finally {
+                setGenLoading(false)
+              }
+            }}
+            disabled={genLoading}
+          >
+            {genLoading ? 'Generating…' : 'Generate Monthly Reports'}
+          </button>
+        </div>
       </div>
 
       <motion.div

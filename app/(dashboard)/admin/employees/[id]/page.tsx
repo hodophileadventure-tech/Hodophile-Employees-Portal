@@ -68,11 +68,18 @@ export default async function EmployeeDetailPage({ params }: any) {
       <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-8">
         <div className="card-lg bg-white dark:bg-slate-900 p-8">
           <div className="flex flex-col items-center text-center">
-            <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-3xl font-bold text-white shadow-lg">
-              {employee.fullName
-                .split(' ')
-                .map((part) => part[0])
-                .join('')}
+            <div className="mb-5">
+              {employee.profilePicture ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={employee.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover shadow-lg" />
+              ) : (
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-3xl font-bold text-white shadow-lg">
+                  {employee.fullName
+                    .split(' ')
+                    .map((part) => part[0])
+                    .join('')}
+                </div>
+              )}
             </div>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
               {employee.fullName}
@@ -126,6 +133,15 @@ export default async function EmployeeDetailPage({ params }: any) {
                     <p className="font-semibold text-slate-900 dark:text-white">
                       {employee.email}
                     </p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-950">
+                <div className="flex items-center gap-3">
+                  <Hash className="text-primary-600" />
+                  <div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">CNIC</p>
+                    <p className="font-semibold text-slate-900 dark:text-white">{employee.cnicNumber}</p>
                   </div>
                 </div>
               </div>

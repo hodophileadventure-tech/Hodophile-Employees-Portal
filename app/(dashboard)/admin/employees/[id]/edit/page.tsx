@@ -35,6 +35,8 @@ export default function EditEmployeePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [employee, setEmployee] = useState<Employee | null>(null)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
@@ -165,6 +167,46 @@ export default function EditEmployeePage() {
           </h2>
 
           <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div>
+                {employee?.profilePicture ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={employee.profilePicture} alt="Profile" className="h-20 w-20 rounded-full object-cover" />
+                ) : (
+                  <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold">{employee?.fullName?.split(' ').map(p=>p[0]).join('')}</div>
+                )}
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Profile Picture</label>
+                <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files ? e.target.files[0] : null)} />
+                <div className="mt-2 flex gap-2">
+                  <button type="button" onClick={async () => {
+                    if (!photoFile) return
+                    setUploading(true)
+                    try {
+                      const fd = new FormData()
+                      fd.append('file', photoFile)
+                      const res = await fetch(`/api/admin/employees/${id}/photo`, { method: 'POST', body: fd })
+                      const json = await res.json()
+                      if (json.success) {
+                        setEmployee(json.data.employee)
+                        // refresh parent maybe
+                      } else {
+                        toast.error(json.message || 'Upload failed')
+                      }
+                    } catch (e) {
+                      console.error('Upload error', e)
+                      toast.error('Upload failed')
+                    } finally {
+                      setUploading(false)
+                      setPhotoFile(null)
+                    }
+                  }} className="px-4 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-50" disabled={uploading}>
+                    {uploading ? 'Uploading…' : 'Upload'}
+                  </button>
+                </div>
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Full Name
@@ -221,6 +263,19 @@ export default function EditEmployeePage() {
                 placeholder="Enter address"
                 className="input w-full"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                CNIC Number
+              </label>
+              <input
+                type="text"
+                name="cnicNumber"
+                value={(employee && (employee as any).cnicNumber) || ''}
+                disabled
+                className="input w-full bg-slate-100 dark:bg-slate-800 cursor-not-allowed"
               />
             </div>
 

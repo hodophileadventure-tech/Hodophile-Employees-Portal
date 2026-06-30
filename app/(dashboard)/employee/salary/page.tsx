@@ -71,32 +71,51 @@ export default function SalaryPage() {
       return
     }
 
-    fetch('/api/employee/me', { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          const emp = data.data
-          setSalaryData((s) => {
-            const monthlySalary = emp.monthlySalary ?? s.monthlySalary
-            const earnedSalary = Math.round((s.presentDays / s.totalDays) * monthlySalary)
-            const totalPay = earnedSalary + s.commissionEarned + s.monthlyIncentive
-            return {
-              ...s,
-              monthlySalary,
-              earnedSalary,
-              totalPay,
-              employeeId: emp.id,
-              designation: emp.designation ?? '',
-            }
-          })
+    ;(async () => {
+      try {
+        const meRes = await fetch('/api/employee/me', { headers: { Authorization: `Bearer ${token}` } })
+        const meJson = await meRes.json()
+        if (!meJson.success) return
+        const emp = meJson.data
 
-          if (emp.designation?.toLowerCase().includes('sales executive')) {
-            fetchSalesData(emp.id)
-          }
+        // fetch salary record for current month
+        const month = new Date().toISOString().slice(0, 7)
+        const salaryRes = await fetch(`/api/employee/salary?month=${month}`, { headers: { Authorization: `Bearer ${token}` } })
+        const salaryJson = await salaryRes.json()
+
+        let salaryRecord = null
+        if (salaryJson.success) {
+          salaryRecord = salaryJson.data.salaryRecord
         }
-      })
-      .catch((e) => console.error('Failed to load salary data', e))
-      .finally(() => setLoading(false))
+
+        setSalaryData((s) => {
+          const monthlySalary = emp.monthlySalary ?? s.monthlySalary
+          const earnedSalary = salaryRecord?.earnedSalary ?? Math.round((s.presentDays / s.totalDays) * monthlySalary)
+          const commission = salaryRecord?.commission ?? s.commissionEarned
+          const incentive = salaryRecord?.monthlyIncentive ?? s.monthlyIncentive
+          const totalPay = earnedSalary + commission + incentive
+          return {
+            ...s,
+            monthlySalary,
+            earnedSalary,
+            totalPay,
+            commissionEarned: commission,
+            monthlyIncentive: incentive,
+            employeeId: emp.id,
+            designation: emp.designation ?? '',
+            presentDays: salaryRecord?.daysWorked ?? s.presentDays,
+          }
+        })
+
+        if (emp.designation?.toLowerCase().includes('sales executive')) {
+          fetchSalesData(emp.id)
+        }
+      } catch (e) {
+        console.error('Failed to load salary data', e)
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [])
 
   const handleLeadSubmit = async () => {
