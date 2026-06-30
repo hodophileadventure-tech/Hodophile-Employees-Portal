@@ -204,11 +204,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'Checked in successfully',
-        data: {
-          ...attendance,
-          checkInTime: formatClock(attendance.checkInTime),
-          checkOutTime: formatClock(attendance.checkOutTime),
-        },
+        data: attendance,
       })
     }
 
@@ -223,11 +219,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'You already checked out today',
-        data: {
-          ...existingAttendance,
-          checkInTime: formatClock(existingAttendance.checkInTime),
-          checkOutTime: formatClock(existingAttendance.checkOutTime),
-        },
+        data: existingAttendance,
       })
     }
 
@@ -243,11 +235,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Checked out successfully',
-      data: {
-        ...attendance,
-        checkInTime: formatClock(attendance.checkInTime),
-        checkOutTime: formatClock(attendance.checkOutTime),
-      },
+      data: attendance,
     })
   } catch (error) {
     console.error('Failed to update attendance:', error)

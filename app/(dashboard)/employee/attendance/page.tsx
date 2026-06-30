@@ -84,9 +84,18 @@ export default function AttendancePage() {
     setMonth(e.target.value)
   }
 
-  const formatTime = (date?: Date) => {
-    if (!date) return '--'
-    return new Date(date).toLocaleTimeString('en-US', {
+  const formatLocalTime = (timestamp?: string | Date) => {
+    if (!timestamp) return '--'
+
+    const value = typeof timestamp === 'string' ? timestamp : timestamp.toISOString()
+    const utcTimestamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(value)
+      ? `${value}Z`
+      : value
+
+    const date = new Date(utcTimestamp)
+    if (Number.isNaN(date.getTime())) return '--'
+
+    return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
@@ -214,10 +223,10 @@ export default function AttendancePage() {
                         {formatDate(new Date(record.date))}
                       </td>
                       <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
-                        {formatTime(record.checkInTime)}
+                        {formatLocalTime(record.checkInTime)}
                       </td>
                       <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
-                        {formatTime(record.checkOutTime)}
+                        {formatLocalTime(record.checkOutTime)}
                       </td>
                       <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
                         {record.workingHours ? `${record.workingHours.toFixed(2)} hrs` : '—'}

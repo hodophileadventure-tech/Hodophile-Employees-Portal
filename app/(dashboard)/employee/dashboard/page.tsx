@@ -41,6 +41,23 @@ export default function EmployeeDashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [attendanceMessage, setAttendanceMessage] = useState<string | null>(null)
 
+  const formatLocalTime = (timestamp?: string) => {
+    if (!timestamp) return ''
+
+    const utcLike = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/
+    const date = new Date(utcLike.test(timestamp) ? `${timestamp}Z` : timestamp)
+
+    if (Number.isNaN(date.getTime())) {
+      return timestamp
+    }
+
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+  }
+
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -252,7 +269,7 @@ export default function EmployeeDashboard() {
                     Check In
                   </p>
                   <p className="font-semibold text-slate-900 dark:text-white">
-                    {stats.checkInTime}
+                    {formatLocalTime(stats.checkInTime)}
                   </p>
                 </div>
               </div>
@@ -268,7 +285,7 @@ export default function EmployeeDashboard() {
                       Check Out
                     </p>
                     <p className="font-semibold text-slate-900 dark:text-white">
-                      {stats.checkOutTime || 'Pending'}
+                      {stats.checkOutTime ? formatLocalTime(stats.checkOutTime) : 'Pending'}
                     </p>
                   </div>
                 </div>
