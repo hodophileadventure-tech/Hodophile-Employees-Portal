@@ -15,6 +15,9 @@ COPY prisma ./prisma/
 # Install dependencies (postinstall script runs here)
 RUN npm ci --legacy-peer-deps
 
+# Generate Prisma client during build so types are available
+RUN npx prisma generate --schema=./prisma/schema.prisma
+
 # Copy source code
 COPY . .
 

@@ -11,6 +11,7 @@ import {
   Calendar,
   FileText,
 } from 'lucide-react'
+import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import StatCard from '@/components/premium/StatCard'
 
 interface DashboardStats {
@@ -20,6 +21,8 @@ interface DashboardStats {
   monthlyExpense: number
   departments: Array<{ name: string; count: number; percentage: number }>
   recentActivity: Array<{ action: string; activity: string; time: string }>
+  attendanceBreakdown: Record<string, number>
+  salesAgentPerformance: Array<{ name: string; id: string; sales: number; commission: number }>
 }
 
 export default function AdminDashboard() {
@@ -30,6 +33,8 @@ export default function AdminDashboard() {
     monthlyExpense: 0,
     departments: [],
     recentActivity: [],
+    attendanceBreakdown: { PRESENT: 0, ABSENT: 0, LATE: 0, HALFDAY: 0 },
+    salesAgentPerformance: [],
   })
   const [loading, setLoading] = useState(true)
 
@@ -208,6 +213,159 @@ export default function AdminDashboard() {
             ) : (
               <p className="text-sm text-slate-500 dark:text-slate-400">No department data yet.</p>
             )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Charts - Attendance Pie & Sales Line */}
+      <motion.div
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        {/* Attendance Pie Chart */}
+        <div className="card-lg bg-white dark:bg-slate-900 p-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">
+            Attendance Breakdown (This Month)
+          </h2>
+          <div className="flex justify-center">
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Present', value: stats.attendanceBreakdown.PRESENT, fill: '#10b981' },
+                    { name: 'Absent', value: stats.attendanceBreakdown.ABSENT, fill: '#ef4444' },
+                    { name: 'Late', value: stats.attendanceBreakdown.LATE, fill: '#f59e0b' },
+                    { name: 'Half Day', value: stats.attendanceBreakdown.HALFDAY, fill: '#3b82f6' },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${value}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  <Cell fill="#10b981" />
+                  <Cell fill="#ef4444" />
+                  <Cell fill="#f59e0b" />
+                  <Cell fill="#3b82f6" />
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1f2937',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Legend */}
+          <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-emerald-500" />
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                Present: {stats.attendanceBreakdown.PRESENT}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-red-500" />
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                Absent: {stats.attendanceBreakdown.ABSENT}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-amber-500" />
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                Late: {stats.attendanceBreakdown.LATE}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                Half Day: {stats.attendanceBreakdown.HALFDAY}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Sales Agent Line Chart */}
+        <div className="card-lg bg-white dark:bg-slate-900 p-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">
+            Sales Agent Performance
+          </h2>
+          <div className="flex justify-center">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={stats.salesAgentPerformance.slice(0, 10).map((agent, idx) => ({
+                  name: agent.name.split(' ')[0],
+                  sales: agent.sales,
+                  commission: agent.commission,
+                }))}
+                margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1f2937',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                  }}
+                  formatter={(value: any) => `Rs. ${(Number(value) / 1000).toFixed(1)}k`}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="sales"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  dot={{ fill: '#10b981', r: 4 }}
+                  activeDot={{ r: 6 }}
+                  name="Sales"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="commission"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{ fill: '#3b82f6', r: 4 }}
+                  activeDot={{ r: 6 }}
+                  name="Commission"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Top Performers */}
+          <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+            <p className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Top Performers</p>
+            <div className="space-y-3">
+              {stats.salesAgentPerformance.slice(0, 5).map((agent, idx) => (
+                <div key={agent.id} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-xs font-bold text-primary-600 dark:text-primary-400">
+                      {idx + 1}
+                    </span>
+                    <span className="text-slate-700 dark:text-slate-300">{agent.name}</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-slate-900 dark:text-white">
+                      Rs. {(agent.sales / 1000).toFixed(1)}k
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Comm: Rs. {agent.commission}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </motion.div>

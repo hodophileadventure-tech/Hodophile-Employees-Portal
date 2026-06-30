@@ -19,7 +19,24 @@ export async function GET() {
     const todayEnd = new Date()
     todayEnd.setHours(23, 59, 59, 999)
 
-    const [totalEmployees, employees, todaysAttendance, salaryAggregate] = await Promise.all([
+    // Get current month range for attendance pie chart
+    const monthStart = new Date()
+    monthStart.setDate(1)
+    monthStart.setHours(0, 0, 0, 0)
+
+    const monthEnd = new Date()
+    monthEnd.setMonth(monthEnd.getMonth() + 1)
+    monthEnd.setDate(0)
+    monthEnd.setHours(23, 59, 59, 999)
+
+    const [
+      totalEmployees,
+      employees,
+      todaysAttendance,
+      salaryAggregate,
+      monthlyAttendance,
+      salesLeads,
+    ] = await Promise.all([
       prisma.employee.count({ where: { status: 'ACTIVE' } }),
       prisma.employee.findMany({
         select: {
@@ -54,6 +71,28 @@ export async function GET() {
           monthlySalary: true,
         },
       }),
+      prisma.attendance.findMany({
+        where: {
+          date: {
+            gte: monthStart,
+            lte: monthEnd,
+          },
+        },
+      }),
+      prisma.salesLead.findMany({
+        include: {
+          employee: {
+            select: {
+              fullName: true,
+              id: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 100,
+      }),
     ])
 
     const presentToday = todaysAttendance.filter((entry) => entry.status === 'PRESENT' || entry.status === 'LATE').length
@@ -86,6 +125,42 @@ export async function GET() {
           time: employee.createdAt ? new Date(employee.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Today',
         }))
 
+    // Calculate attendance breakdown for pie chart
+    const attendanceBreakdown = {
+      PRESENT: monthlyAttendance.filter((a) => a.status === 'PRESENT').length,
+      ABSENT: monthlyAttendance.filter((a) => a.status === 'ABSENT').length,
+      LATE: monthlyAttendance.filter((a) => a.status === 'LATE').length,
+      HALFDAY: monthlyAttendance.filter((a) => a.status === 'HALFDAY').length,
+    }
+
+    // Calculate sales agent performance
+    const salesAgentMap = new Map<
+      string,
+      { name: string; id: string; sales: number; commission: number }
+    >()
+
+    salesLeads.forEach((lead: any) => {
+      const agentId = lead.employeeId
+      const agentName = lead.employee?.fullName || 'Unknown'
+
+      const current = salesAgentMap.get(agentId) || {
+        name: agentName,
+        id: agentId,
+        sales: 0,
+        commission: 0,
+      }
+
+      // Use leadWorth as the lead value
+      current.sales += (lead.leadWorth || 0)
+      current.commission += (lead.commission || 0)
+
+      salesAgentMap.set(agentId, current)
+    })
+
+    const salesAgentPerformance = Array.from(salesAgentMap.values()).sort(
+      (a, b) => b.sales - a.sales
+    )
+
     return NextResponse.json({
       success: true,
       data: {
@@ -95,6 +170,8 @@ export async function GET() {
         monthlyExpense,
         departments,
         recentActivity,
+        attendanceBreakdown,
+        salesAgentPerformance,
       },
     })
   } catch (error) {

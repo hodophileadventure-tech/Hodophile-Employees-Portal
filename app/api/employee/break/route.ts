@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     if (action === 'start') {
       // Start a new break
-      const existingActiveBreak = await prisma.break.findFirst({
+      const existingActiveBreak = await (prisma as any)['break'].findFirst({
         where: {
           employeeId,
           date: today,
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Check total break time today
-      const todayBreaks = await prisma.break.findMany({
+      const todayBreaks = await (prisma as any)['break'].findMany({
         where: {
           employeeId,
           date: today,
@@ -63,10 +63,7 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      const totalBreakMinutes = todayBreaks.reduce(
-        (sum, brk) => sum + (brk.duration || 0),
-        0
-      )
+      const totalBreakMinutes = todayBreaks.reduce((sum: any, brk: any) => sum + (brk.duration || 0), 0)
 
       if (totalBreakMinutes >= 60) {
         return NextResponse.json(
@@ -78,7 +75,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const breakRecord = await prisma.break.create({
+      const breakRecord = await (prisma as any)['break'].create({
         data: {
           employeeId,
           date: today,
@@ -93,7 +90,7 @@ export async function POST(request: NextRequest) {
       })
     } else if (action === 'end') {
       // End the current break
-      const activeBreak = await prisma.break.findFirst({
+      const activeBreak = await (prisma as any)['break'].findFirst({
         where: {
           employeeId,
           date: today,
@@ -113,7 +110,7 @@ export async function POST(request: NextRequest) {
         (breakEnd.getTime() - activeBreak.breakStart.getTime()) / (1000 * 60)
       )
 
-      const updatedBreak = await prisma.break.update({
+      const updatedBreak = await (prisma as any)['break'].update({
         where: { id: activeBreak.id },
         data: {
           breakEnd,
@@ -132,23 +129,20 @@ export async function POST(request: NextRequest) {
       })
 
       if (attendance) {
-        const allBreaksToday = await prisma.break.findMany({
-          where: {
-            employeeId,
-            date: today,
-            breakEnd: { not: null },
-          },
-        })
+          const allBreaksToday = await (prisma as any)['break'].findMany({
+            where: {
+              employeeId,
+              date: today,
+              breakEnd: { not: null },
+            },
+          })
 
-        const totalBreakMinutes = allBreaksToday.reduce(
-          (sum, brk) => sum + (brk.duration || 0),
-          0
-        )
+          const totalBreakMinutes = allBreaksToday.reduce((sum: any, brk: any) => sum + (brk.duration || 0), 0)
 
-        await prisma.attendance.update({
-          where: { id: attendance.id },
-          data: { totalBreakMinutes },
-        })
+          await (prisma as any).attendance.update({
+            where: { id: attendance.id },
+            data: ({ totalBreakMinutes } as any),
+          })
       }
 
       return NextResponse.json({
@@ -194,7 +188,7 @@ export async function GET(request: NextRequest) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const breaks = await prisma.break.findMany({
+    const breaks = await (prisma as any)['break'].findMany({
       where: {
         employeeId,
         date: today,
@@ -202,11 +196,8 @@ export async function GET(request: NextRequest) {
       orderBy: { breakStart: 'asc' },
     })
 
-    const activeBreak = breaks.find((brk) => !brk.breakEnd)
-    const totalBreakMinutes = breaks.reduce(
-      (sum, brk) => sum + (brk.duration || 0),
-      0
-    )
+    const activeBreak = breaks.find((brk: any) => !brk.breakEnd)
+    const totalBreakMinutes = breaks.reduce((sum: any, brk: any) => sum + (brk.duration || 0), 0)
 
     return NextResponse.json({
       success: true,

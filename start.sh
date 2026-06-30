@@ -4,6 +4,7 @@ set -e
 echo "🚀 Starting application..."
 echo "📊 Running database migrations..."
 
+npx --no-install prisma generate || true
 npx --no-install prisma migrate deploy
 
 echo "✅ Migrations complete!"
