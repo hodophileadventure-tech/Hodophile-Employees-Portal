@@ -96,7 +96,7 @@ export async function GET() {
     ])
 
     // For live status, fetch today's breaks and map by employee
-    const todaysBreaks = await prisma.break.findMany({
+    const todaysBreaks = await (prisma as any).break.findMany({
       where: {
         date: {
           gte: todayStart,
@@ -107,7 +107,7 @@ export async function GET() {
     })
 
     const breakMap = new Map<string, any[]>()
-    todaysBreaks.forEach((b) => {
+    todaysBreaks.forEach((b: any) => {
       const arr = breakMap.get(b.employeeId) || []
       arr.push(b)
       breakMap.set(b.employeeId, arr)

@@ -34,7 +34,7 @@ export async function POST() {
       const earnedSalary = Math.round((presentCount / totalWorkingDays) * (emp.monthlySalary || 0))
 
       // Penalty escalation logic
-      const overageDays = attendance.filter(a => (a.totalBreakMinutes || 0) > 60).length
+      const overageDays = attendance.filter(a => (((a as any).totalBreakMinutes || 0) > 60)).length
       const overageToLate = Math.floor(overageDays / 5)
       const totalLates = lateCount + overageToLate
       const lateToAbsent = Math.floor(totalLates / 3)

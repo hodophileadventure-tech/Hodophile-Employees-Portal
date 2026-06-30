@@ -25,6 +25,7 @@ interface Employee {
     email: string
     role: string
   }
+  profilePicture?: string | null
 }
 
 export default function EditEmployeePage() {
