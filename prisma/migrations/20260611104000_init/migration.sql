@@ -79,11 +79,16 @@ CREATE TABLE "SalesLead" (
     "confirmed" BOOLEAN NOT NULL DEFAULT false,
     "confirmedAt" TIMESTAMP(3),
     "commission" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "sourceLeadId" TEXT,
+    "sourceSystem" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "SalesLead_pkey" PRIMARY KEY ("id")
 );
+
+-- Add unique sourceLeadId index for deduplication
+CREATE UNIQUE INDEX "SalesLead_sourceLeadId_key" ON "SalesLead"("sourceLeadId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");

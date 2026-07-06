@@ -5,11 +5,16 @@ import { z } from 'zod'
 
 const confirmLeadSchema = z.object({
   employeeId: z.string(),
+  employeeEmail: z.string().email().optional(),
   customerName: z.string().min(1, 'Customer name is required'),
   customerNumber: z.string().min(1, 'Customer number is required'),
   destination: z.string().min(1, 'Destination is required'),
   persons: z.number().int().positive('Number of persons must be greater than 0'),
   leadWorth: z.number().positive(),
+  commission: z.number().nonnegative().optional(),
+  leadId: z.string().optional(),
+  sourceSystem: z.string().optional(),
+  confirmedAt: z.string().optional(),
 })
 
 // Calculate commission based on lead worth
@@ -21,15 +26,80 @@ function calculateCommission(leadWorth: number): number {
   }
 }
 
+const getMonthStart = (date = new Date()) => {
+  return new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0)
+}
+
+const upsertSalaryRecord = async (employeeId: string, commission: number) => {
+  const month = getMonthStart()
+  const existing = await prisma.salaryRecord.findUnique({
+    where: {
+      employeeId_month: {
+        employeeId,
+        month,
+      },
+    },
+  })
+
+  if (existing) {
+    const updated = await prisma.salaryRecord.update({
+      where: { id: existing.id },
+      data: {
+        commission: existing.commission + commission,
+        netSalary: existing.totalSalary + existing.commission + commission - existing.deductions,
+        updatedAt: new Date(),
+      },
+    })
+    return updated
+  }
+
+  const employee = await prisma.employee.findUnique({ where: { id: employeeId } })
+  const totalSalary = employee?.monthlySalary ?? 0
+  const created = await prisma.salaryRecord.create({
+    data: {
+      employeeId,
+      month,
+      daysWorked: 0,
+      totalSalary,
+      earnedSalary: 0,
+      deductions: 0,
+      commission,
+      monthlyIncentive: 0,
+      netSalary: totalSalary + commission,
+      status: 'PENDING',
+    },
+  })
+  return created
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const validated = confirmLeadSchema.parse(body)
 
-    // Check if employee exists
-    const employee = await prisma.employee.findUnique({
-      where: { id: validated.employeeId },
-    })
+    if (validated.sourceSystem === 'lead-manager' && !validated.employeeEmail) {
+      return NextResponse.json(
+        { success: false, message: 'employeeEmail is required for lead-manager payloads' },
+        { status: 400 }
+      )
+    }
+
+    let employee;
+    if (validated.sourceSystem === 'lead-manager') {
+      employee = await prisma.employee.findUnique({
+        where: { email: validated.employeeEmail! },
+      })
+    } else {
+      employee = await prisma.employee.findFirst({
+        where: {
+          OR: [
+            { id: validated.employeeId },
+            { employeeId: validated.employeeId },
+            { userId: validated.employeeId },
+          ],
+        },
+      })
+    }
 
     if (!employee) {
       return NextResponse.json(
@@ -46,22 +116,49 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const commission = calculateCommission(validated.leadWorth)
+    let commission: number
+    if (validated.sourceSystem === 'lead-manager') {
+      if (validated.commission === undefined) {
+        return NextResponse.json(
+          { success: false, message: 'commission is required for lead-manager payloads' },
+          { status: 400 }
+        )
+      }
+      commission = validated.commission
+    } else {
+      commission = validated.commission ?? calculateCommission(validated.leadWorth)
+    }
+
+    if (validated.leadId) {
+      const existingLead = await prisma.salesLead.findUnique({
+        where: { sourceLeadId: validated.leadId },
+      })
+      if (existingLead) {
+        return NextResponse.json(
+          { success: true, message: 'Duplicate lead already recorded', data: existingLead },
+          { status: 409 }
+        )
+      }
+    }
 
     // Create sales lead record
     const lead = await prisma.salesLead.create({
       data: {
-        employeeId: validated.employeeId,
+        employeeId: employee.id,
         customerName: validated.customerName,
         customerNumber: validated.customerNumber,
         destination: validated.destination,
         persons: validated.persons,
         leadWorth: validated.leadWorth,
         confirmed: true,
-        confirmedAt: new Date(),
+        confirmedAt: validated.confirmedAt ? new Date(validated.confirmedAt) : new Date(),
         commission,
+        sourceLeadId: validated.leadId,
+        sourceSystem: validated.sourceSystem || 'unknown',
       },
     })
+
+    const salaryRecord = await upsertSalaryRecord(employee.id, commission)
 
     return NextResponse.json(
       {
@@ -70,6 +167,7 @@ export async function POST(request: NextRequest) {
         data: {
           ...lead,
           commissionEarned: commission,
+          salaryRecordId: salaryRecord.id,
         },
       },
       { status: 201 }

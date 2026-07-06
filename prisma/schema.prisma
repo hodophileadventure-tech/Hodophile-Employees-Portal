@@ -145,6 +145,8 @@ model SalesLead {
   confirmed      Boolean   @default(false)  // Whether lead is confirmed
   confirmedAt    DateTime?
   commission     Float     @default(0)  // Calculated commission: 500 if <= 25000, 1000 if > 25000
+  sourceLeadId   String?    @unique
+  sourceSystem   String?   
 
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
