@@ -112,16 +112,16 @@ export async function DELETE(
       )
     }
 
-    // Delete user account associated with employee
-    if (employee.userId) {
-      await prisma.user.delete({
-        where: { id: employee.userId },
+    await prisma.$transaction(async (tx) => {
+      await tx.employee.delete({
+        where: { id },
       })
-    }
 
-    // Delete employee record
-    await prisma.employee.delete({
-      where: { id },
+      if (employee.userId) {
+        await tx.user.delete({
+          where: { id: employee.userId },
+        })
+      }
     })
 
     return NextResponse.json({

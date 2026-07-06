@@ -154,7 +154,8 @@ export default function EditEmployeePage() {
     )
   }
 
-  const departments = ['Engineering', 'Product', 'Design', 'Quality Assurance', 'Operations']
+  const departments = ['Engineering', 'Product', 'Design', 'Quality Assurance', 'Operations', 'Sales', 'Sales and Operations', 'DevOps']
+  const departmentOptions = Array.from(new Set([...(formData.department ? [formData.department] : []), ...departments]))
 
   return (
     <div className="space-y-8">
@@ -391,7 +392,7 @@ export default function EditEmployeePage() {
                   required
                 >
                   <option value="">Select department</option>
-                  {departments.map(dept => (
+                  {departmentOptions.map(dept => (
                     <option key={dept} value={dept}>{dept}</option>
                   ))}
                 </select>
