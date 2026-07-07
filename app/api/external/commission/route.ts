@@ -111,13 +111,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 5. Verify employee exists
-    const employee = await prisma.employee.findUnique({
+    // 5. Verify employee exists. Accept portal internal employee ID, or fall back to employeeEmail when the provided ID does not match.
+    let employee = await prisma.employee.findUnique({
       where: { id: payload.employeeId },
     });
 
+    if (!employee && payload.employeeEmail) {
+      console.warn('[Commission API] Employee ID lookup failed, falling back to email:', payload.employeeId, payload.employeeEmail);
+      employee = await prisma.employee.findUnique({
+        where: { email: payload.employeeEmail },
+      });
+    }
+
     if (!employee) {
-      console.error('[Commission API] Employee not found:', payload.employeeId);
+      console.error('[Commission API] Employee not found:', payload.employeeId, payload.employeeEmail);
       return NextResponse.json(
         { success: false, message: 'Employee not found' },
         { status: 404 }
