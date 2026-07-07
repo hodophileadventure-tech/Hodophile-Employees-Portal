@@ -131,6 +131,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const resolvedEmployeeId = employee.id;
+
+    const redactedDatabaseUrl = process.env.DATABASE_URL
+      ? process.env.DATABASE_URL.replace(/\/\/[^@]+@/, '//***:***@')
+      : 'unset';
+
+    console.log('[Commission API] Resolved employee and DB context', {
+      leadId: payload.leadId,
+      requestedEmployeeId: payload.employeeId,
+      resolvedEmployeeId,
+      employeeEmail: employee.email,
+      databaseUrl: redactedDatabaseUrl,
+    });
+
     // 6. Extract month and year from confirmedAt
     const confirmedDate = new Date(payload.confirmedAt);
     const year = confirmedDate.getFullYear();
@@ -142,12 +156,12 @@ export async function POST(request: NextRequest) {
     const salaryRecord = await prisma.salaryRecord.upsert({
       where: {
         employeeId_month: {
-          employeeId: payload.employeeId,
+          employeeId: resolvedEmployeeId,
           month: monthDate,
         },
       },
       create: {
-        employeeId: payload.employeeId,
+        employeeId: resolvedEmployeeId,
         month: monthDate,
         daysWorked: 0, // Will be calculated during payroll
         totalSalary: 0, // Will be calculated during payroll
@@ -169,7 +183,8 @@ export async function POST(request: NextRequest) {
     // 8. Log commission receipt for audit trail
     console.log('[Commission API] Commission processed successfully', {
       leadId: payload.leadId,
-      employeeId: payload.employeeId,
+      requestedEmployeeId: payload.employeeId,
+      resolvedEmployeeId,
       commission: payload.commission,
       salaryRecordId: salaryRecord.id,
       customerName: payload.customerName,
@@ -183,6 +198,8 @@ export async function POST(request: NextRequest) {
         data: {
           leadId: payload.leadId,
           salaryRecordId: salaryRecord.id,
+          requestedEmployeeId: payload.employeeId,
+          resolvedEmployeeId,
           commission: payload.commission,
           totalMonthlyCommission: salaryRecord.commission,
           month: monthDate.toISOString().split('T')[0],
