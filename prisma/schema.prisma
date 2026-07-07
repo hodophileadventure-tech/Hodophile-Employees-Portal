@@ -123,12 +123,16 @@ model SalaryRecord {
   netSalary         Float
   status            String    @default("PENDING")
   
+  // Integration with Lead Manager
+  leadId            String?   @unique  // External lead ID from Lead Manager (for idempotency)
+  
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
   @@unique([employeeId, month])
   @@index([employeeId])
   @@index([month])
+  @@index([leadId])
 }
 
 // Sales Lead model
