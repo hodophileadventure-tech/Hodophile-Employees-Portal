@@ -7,10 +7,10 @@ const confirmLeadSchema = z.object({
   employeeId: z.string(),
   employeeEmail: z.string().email().optional(),
   customerName: z.string().min(1, 'Customer name is required'),
-  customerNumber: z.string().min(1, 'Customer number is required'),
-  destination: z.string().min(1, 'Destination is required'),
+  customerNumber: z.string().optional(),
+  destination: z.string().optional(),
   persons: z.number().int().positive('Number of persons must be greater than 0'),
-  leadWorth: z.number().positive(),
+  leadWorth: z.number().nonnegative().optional(),
   commission: z.number().nonnegative().optional(),
   leadId: z.string().optional(),
   sourceSystem: z.string().optional(),
@@ -77,11 +77,43 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validated = confirmLeadSchema.parse(body)
 
-    if (validated.sourceSystem === 'lead-manager' && !validated.employeeEmail) {
-      return NextResponse.json(
-        { success: false, message: 'employeeEmail is required for lead-manager payloads' },
-        { status: 400 }
-      )
+    if (validated.sourceSystem === 'lead-manager') {
+      if (!validated.employeeEmail) {
+        return NextResponse.json(
+          { success: false, message: 'employeeEmail is required for lead-manager payloads' },
+          { status: 400 }
+        )
+      }
+
+      if (validated.commission === undefined) {
+        return NextResponse.json(
+          { success: false, message: 'commission is required for lead-manager payloads' },
+          { status: 400 }
+        )
+      }
+
+      validated.customerNumber = validated.customerNumber ?? ''
+      validated.destination = validated.destination ?? ''
+      validated.leadWorth = validated.leadWorth ?? 0
+    } else {
+      if (!validated.customerNumber) {
+        return NextResponse.json(
+          { success: false, message: 'customerNumber is required' },
+          { status: 400 }
+        )
+      }
+      if (!validated.destination) {
+        return NextResponse.json(
+          { success: false, message: 'destination is required' },
+          { status: 400 }
+        )
+      }
+      if (validated.leadWorth === undefined) {
+        return NextResponse.json(
+          { success: false, message: 'leadWorth is required' },
+          { status: 400 }
+        )
+      }
     }
 
     let employee;
