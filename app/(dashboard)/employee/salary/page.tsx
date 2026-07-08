@@ -8,13 +8,22 @@ import ProgressRing from '@/components/premium/ProgressRing'
 
 interface LeadSummary {
   id: string
+  employeeId: string
   customerName: string
   customerNumber: string
   destination: string
   persons: number
   leadWorth: number
   commission: number
-  confirmedAt: string
+  confirmedAt: string | Date
+  confirmed: boolean
+  sourceLeadId?: string | null
+  sourceSystem?: string
+  employee?: {
+    id: string
+    fullName: string
+    employeeId: string
+  }
 }
 
 export default function SalaryPage() {
@@ -316,7 +325,7 @@ export default function SalaryPage() {
 
           {/* Confirmed Leads Display */}
           <div className="mt-6 rounded-3xl border border-[#E5E5E5] bg-[#F5F5F5] p-6">
-            <h3 className="text-base font-semibold text-[#FCC000] mb-4">Confirmed Leads This Month</h3>
+            <h3 className="text-base font-semibold text-[#FCC000] mb-4">Confirmed Leads This Month ({salesLeads.length})</h3>
             {salesLeads.length === 0 ? (
               <p className="text-sm text-[#2B2B2B]">No confirmed leads yet.</p>
             ) : (
