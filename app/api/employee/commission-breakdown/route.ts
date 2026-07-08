@@ -24,32 +24,45 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Get all sales leads
-    const salesLeads = await prisma.salesLead.findMany({
+    // Get ALL sales leads (confirmed and unconfirmed) for this employee
+    const allSalesLeads = await prisma.salesLead.findMany({
       where: {
         employeeId,
-        confirmed: true,
       },
       orderBy: {
         confirmedAt: 'desc',
       },
     })
 
+    const confirmedSalesLeads = allSalesLeads.filter(l => l.confirmed)
+    const unconfirmedSalesLeads = allSalesLeads.filter(l => !l.confirmed)
+
     // Calculate totals
     const totalCommissionFromSalaryRecords = salaryRecords.reduce((sum, record) => sum + record.commission, 0)
-    const totalCommissionFromLeads = salesLeads.reduce((sum, lead) => sum + lead.commission, 0)
+    const totalCommissionFromLeads = confirmedSalesLeads.reduce((sum, lead) => sum + lead.commission, 0)
     const unaccountedCommission = totalCommissionFromSalaryRecords - totalCommissionFromLeads
+
+    console.log('[COMMISSION BREAKDOWN]', {
+      employeeId,
+      totalCommissionFromSalaryRecords,
+      totalCommissionFromLeads,
+      unaccountedCommission,
+      confirmedLeads: confirmedSalesLeads.length,
+      unconfirmedLeads: unconfirmedSalesLeads.length,
+    })
 
     return NextResponse.json({
       success: true,
       data: {
         salaryRecords,
-        salesLeads,
+        confirmedSalesLeads,
+        unconfirmedSalesLeads,
         summary: {
           totalCommissionFromSalaryRecords,
           totalCommissionFromLeads,
           unaccountedCommission,
-          totalLeads: salesLeads.length,
+          totalConfirmedLeads: confirmedSalesLeads.length,
+          totalUnconfirmedLeads: unconfirmedSalesLeads.length,
         },
       },
     })

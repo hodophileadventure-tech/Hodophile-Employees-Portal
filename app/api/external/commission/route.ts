@@ -180,6 +180,46 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // 7b. Create corresponding SalesLead record for visibility in portal
+    // This allows users to see all confirmed sales from both portal and external system
+    let salesLead = null;
+    if (payload.leadId) {
+      try {
+        // Check if this external lead already has a SalesLead record
+        const existingLead = await prisma.salesLead.findUnique({
+          where: { sourceLeadId: payload.leadId },
+        });
+
+        if (!existingLead) {
+          // Create a new SalesLead record for this external commission
+          salesLead = await prisma.salesLead.create({
+            data: {
+              employeeId: resolvedEmployeeId,
+              customerName: payload.customerName || 'External Lead',
+              customerNumber: payload.customerNumber || '',
+              destination: payload.destination || 'N/A',
+              persons: payload.persons || 1,
+              leadWorth: payload.leadWorth || 0,
+              confirmed: true,
+              confirmedAt: confirmedDate,
+              commission: payload.commission,
+              sourceLeadId: payload.leadId,
+              sourceSystem: 'lead-manager',
+            },
+          });
+          console.log('[Commission API] Created SalesLead record for external commission:', {
+            salesLeadId: salesLead.id,
+            leadId: payload.leadId,
+          });
+        } else {
+          console.log('[Commission API] SalesLead already exists for this external lead:', payload.leadId);
+        }
+      } catch (error) {
+        console.error('[Commission API] Error creating SalesLead record:', error);
+        // Don't fail the entire commission if SalesLead creation fails
+      }
+    }
+
     // 8. Log commission receipt for audit trail
     console.log('[Commission API] Commission processed successfully', {
       leadId: payload.leadId,
@@ -198,6 +238,7 @@ export async function POST(request: NextRequest) {
         data: {
           leadId: payload.leadId,
           salaryRecordId: salaryRecord.id,
+          salesLeadId: salesLead?.id,
           requestedEmployeeId: payload.employeeId,
           resolvedEmployeeId,
           commission: payload.commission,

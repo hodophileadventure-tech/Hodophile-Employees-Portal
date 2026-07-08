@@ -341,7 +341,7 @@ export default function SalaryPage() {
           {/* Confirmed Leads Display */}
           <div className="mt-6 rounded-3xl border border-[#E5E5E5] bg-[#F5F5F5] p-6">
             <h3 className="text-base font-semibold text-[#FCC000] mb-4">All Confirmed Sales ({salesLeads.length})</h3>
-            <p className="text-xs text-[#666] mb-4">Below are all your confirmed sales. Your total earned commission is Rs. {salaryData.commissionEarned.toLocaleString()} (from the Confirmed Commission card above).</p>
+            <p className="text-xs text-[#666] mb-4">These are your individual confirmed sales shown in detail. Additional commission from the Hodophile Leads system is shown in the &quot;Commission Breakdown&quot; section below.</p>
             {salesLeads.length === 0 ? (
               <p className="text-sm text-[#2B2B2B]">No confirmed sales recorded yet.</p>
             ) : (
@@ -368,21 +368,80 @@ export default function SalaryPage() {
           {/* Commission Breakdown by Month */}
           {commissionBreakdown && commissionBreakdown.salaryRecords.length > 0 && (
             <div className="mt-6 rounded-3xl border border-[#E5E5E5] bg-[#F5F5F5] p-6">
-              <h3 className="text-base font-semibold text-[#FCC000] mb-4">Commission History</h3>
-              <div className="space-y-2">
-                {commissionBreakdown.salaryRecords.map((record: any) => (
-                  <div key={record.id} className="flex items-center justify-between p-3 rounded-lg bg-white border border-[#E5E5E5]">
-                    <span className="text-sm text-[#2B2B2B]">{new Date(record.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-                    <span className="font-semibold text-[#FCC000]">Rs. {record.commission.toLocaleString()}</span>
-                  </div>
-                ))}
+              <h3 className="text-base font-semibold text-[#FCC000] mb-4">Commission Breakdown</h3>
+              
+              {/* Month by month breakdown */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-[#2B2B2B] mb-3">By Month</h4>
+                <div className="space-y-2">
+                  {commissionBreakdown.salaryRecords.map((record: any) => (
+                    <div key={record.id} className="flex items-center justify-between p-3 rounded-lg bg-white border border-[#E5E5E5]">
+                      <span className="text-sm text-[#2B2B2B]">{new Date(record.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                      <span className="font-semibold text-[#FCC000]">Rs. {record.commission.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              {/* Commission sources summary */}
+              <div className="pt-4 border-t border-[#E5E5E5]">
+                <h4 className="text-sm font-medium text-[#2B2B2B] mb-3">Sources</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white border border-[#E5E5E5]">
+                    <div>
+                      <p className="text-sm font-medium text-[#2B2B2B]">From Individual Sales</p>
+                      <p className="text-xs text-[#666]">{commissionBreakdown.summary.totalConfirmedLeads} confirmed sale{commissionBreakdown.summary.totalConfirmedLeads === 1 ? '' : 's'}</p>
+                    </div>
+                    <span className="font-semibold text-[#FCC000]">Rs. {commissionBreakdown.summary.totalCommissionFromLeads.toLocaleString()}</span>
+                  </div>
+                  
+                  {commissionBreakdown.summary.unaccountedCommission > 0 && (
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-[#FFF8E6] border border-[#FCC000]">
+                      <div>
+                        <p className="text-sm font-medium text-[#2B2B2B]">From Hodophile Leads System</p>
+                        <p className="text-xs text-[#666]">Synced from external system</p>
+                      </div>
+                      <span className="font-semibold text-[#FCC000]">Rs. {commissionBreakdown.summary.unaccountedCommission.toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Total */}
               <div className="mt-4 pt-4 border-t border-[#E5E5E5]">
                 <div className="flex items-center justify-between p-3 rounded-lg bg-[#FFF8E6] border border-[#FCC000]">
                   <span className="text-sm font-semibold text-[#2B2B2B]">Total Commission</span>
                   <span className="text-lg font-bold text-[#FCC000]">Rs. {commissionBreakdown.summary.totalCommissionFromSalaryRecords.toLocaleString()}</span>
                 </div>
               </div>
+
+              {/* Detailed breakdown by month source */}
+              {commissionBreakdown.summary.unaccountedCommission > 0 && (
+                <div className="mt-6 pt-6 border-t border-[#E5E5E5]">
+                  <h4 className="text-sm font-medium text-[#2B2B2B] mb-3">Hodophile Leads Commission by Month</h4>
+                  <div className="space-y-2">
+                    {commissionBreakdown.salaryRecords.map((record: any) => {
+                      const recordLeads = commissionBreakdown.confirmedSalesLeads.filter((l: any) => {
+                        const leadMonth = new Date(l.confirmedAt).toISOString().slice(0, 7)
+                        const recordMonth = new Date(record.month).toISOString().slice(0, 7)
+                        return leadMonth === recordMonth
+                      })
+                      const leadsCommission = recordLeads.reduce((sum: number, l: any) => sum + l.commission, 0)
+                      const unaccounted = record.commission - leadsCommission
+                      
+                      if (unaccounted > 0) {
+                        return (
+                          <div key={record.id} className="flex items-center justify-between p-3 rounded-lg bg-[#FFF8E6] border border-[#FCC000]">
+                            <span className="text-sm text-[#2B2B2B]">{new Date(record.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} (Synced)</span>
+                            <span className="font-semibold text-[#FCC000]">Rs. {unaccounted.toLocaleString()}</span>
+                          </div>
+                        )
+                      }
+                      return null
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
