@@ -326,8 +326,9 @@ export default function SalaryPage() {
           {/* Confirmed Leads Display */}
           <div className="mt-6 rounded-3xl border border-[#E5E5E5] bg-[#F5F5F5] p-6">
             <h3 className="text-base font-semibold text-[#FCC000] mb-4">Confirmed Leads This Month ({salesLeads.length})</h3>
+            <p className="text-xs text-[#666] mb-4">Note: Your total confirmed commission is Rs. {salaryData.commissionEarned.toLocaleString()} (shown above). This section displays individual lead records.</p>
             {salesLeads.length === 0 ? (
-              <p className="text-sm text-[#2B2B2B]">No confirmed leads yet.</p>
+              <p className="text-sm text-[#2B2B2B]">No individual lead records to display. Check "Confirmed Commission" above for your total.</p>
             ) : (
               <div className="space-y-3">
                 {salesLeads.map((lead) => (
@@ -340,7 +341,7 @@ export default function SalaryPage() {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-[#FCC000]">Rs. {lead.commission.toLocaleString()}</p>
-                        <p className="text-xs text-[#666] mt-1">{new Date(lead.confirmedAt).toLocaleDateString()}</p>
+                        <p className="text-xs text-[#666] mt-1">{typeof lead.confirmedAt === 'string' ? new Date(lead.confirmedAt).toLocaleDateString() : lead.confirmedAt.toLocaleDateString()}</p>
                       </div>
                     </div>
                   </div>
