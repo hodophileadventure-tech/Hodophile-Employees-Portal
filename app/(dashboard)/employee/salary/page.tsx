@@ -69,13 +69,18 @@ export default function SalaryPage() {
   }
 
   const handleRefreshCommission = async () => {
-    if (!salaryData.employeeId) return
+    if (!salaryData.employeeId) {
+      console.log('[REFRESH] No employee ID, skipping refresh')
+      return
+    }
     setRefreshing(true)
+    console.log('[REFRESH] Starting commission refresh for employee:', salaryData.employeeId)
     try {
       await fetchSalesData(salaryData.employeeId)
       setMessage('Commission data refreshed')
       setTimeout(() => setMessage(''), 3000)
     } catch (error) {
+      console.error('[REFRESH] Error refreshing commission:', error)
       setMessage('Failed to refresh commission data')
     } finally {
       setRefreshing(false)
@@ -83,8 +88,13 @@ export default function SalaryPage() {
   }
 
   useEffect(() => {
-    console.log('[DEBUG] Commission Data:', { commissionEarned: salaryData.commissionEarned, totalLeads: salesLeads.length })
-  }, [salaryData.commissionEarned, salesLeads.length])
+    console.log('[RENDER] Commission Data Updated:', {
+      commissionEarned: salaryData.commissionEarned,
+      totalLeads: salesLeads.length,
+      designation: salaryData.designation,
+      employeeId: salaryData.employeeId,
+    })
+  }, [salaryData.commissionEarned, salesLeads.length, salaryData.designation])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -108,6 +118,7 @@ export default function SalaryPage() {
         let salaryRecord = null
         if (salaryJson.success) {
           salaryRecord = salaryJson.data.salaryRecord
+          console.log('[PAGE LOAD] Salary Record from API:', salaryRecord)
         }
 
         setSalaryData((s) => {
@@ -116,6 +127,7 @@ export default function SalaryPage() {
           const commission = salaryRecord?.commission ?? s.commissionEarned
           const incentive = salaryRecord?.monthlyIncentive ?? s.monthlyIncentive
           const totalPay = earnedSalary + commission + incentive
+          console.log('[PAGE LOAD] Setting salary data with commission:', { commission, earnedSalary, incentive, totalPay })
           return {
             ...s,
             monthlySalary,
