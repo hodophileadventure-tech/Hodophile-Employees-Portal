@@ -38,6 +38,7 @@ export default function SalaryPage() {
   const [loading, setLoading] = useState(true)
   const [salesLoading, setSalesLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
 
   const fetchSalesData = async (employeeId: string) => {
     try {
@@ -61,6 +62,20 @@ export default function SalaryPage() {
       }
     } catch (error) {
       console.error('Failed to fetch sales data', error)
+    }
+  }
+
+  const handleRefreshCommission = async () => {
+    if (!salaryData.employeeId) return
+    setRefreshing(true)
+    try {
+      await fetchSalesData(salaryData.employeeId)
+      setMessage('Commission data refreshed')
+      setTimeout(() => setMessage(''), 3000)
+    } catch (error) {
+      setMessage('Failed to refresh commission data')
+    } finally {
+      setRefreshing(false)
     }
   }
 
@@ -217,7 +232,16 @@ export default function SalaryPage() {
 
       {salaryData.designation.toLowerCase().includes('sales executive') ? (
         <motion.div className="card-lg bg-[#F5F5F5] border border-[#E5E5E5] p-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-          <h2 className="text-lg font-semibold text-[#FCC000] mb-6">Sales Commission</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-[#FCC000]">Sales Commission</h2>
+            <button
+              onClick={handleRefreshCommission}
+              disabled={refreshing}
+              className="px-3 py-1 text-xs font-medium text-[#2B2B2B] bg-[#FCC000] rounded-lg hover:bg-[#e0a800] disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-3xl border border-[#E5E5E5] bg-[#F5F5F5] p-5">
@@ -234,6 +258,31 @@ export default function SalaryPage() {
             </div>
           </div>
 
+          {/* Confirmed Leads Display */}
+          <div className="mt-6 rounded-3xl border border-[#E5E5E5] bg-[#F5F5F5] p-6">
+            <h3 className="text-base font-semibold text-[#FCC000] mb-4">Confirmed Leads This Month</h3>
+            {salesLeads.length === 0 ? (
+              <p className="text-sm text-[#2B2B2B]">No confirmed leads yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {salesLeads.map((lead) => (
+                  <div key={lead.id} className="rounded-2xl border border-[#E5E5E5] bg-white p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <p className="font-medium text-[#2B2B2B]">{lead.customerName}</p>
+                        <p className="text-xs text-[#666] mt-1">{lead.customerNumber} • {lead.destination} • {lead.persons} person{lead.persons === 1 ? '' : 's'}</p>
+                        <p className="text-xs text-[#666] mt-1">Lead Worth: Rs. {lead.leadWorth.toLocaleString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-[#FCC000]">Rs. {lead.commission.toLocaleString()}</p>
+                        <p className="text-xs text-[#666] mt-1">{new Date(lead.confirmedAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
         </motion.div>
       ) : null}
