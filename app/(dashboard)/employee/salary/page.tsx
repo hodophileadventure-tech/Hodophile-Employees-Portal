@@ -48,11 +48,11 @@ export default function SalaryPage() {
       console.log('[SALARY PAGE] Sales data response:', data)
       if (data.success) {
         const stats = data.data.statistics
+        const leads = data.data.leads
         console.log('[SALARY PAGE] Setting leads data:', stats)
-        setSalesLeads(data.data.leads)
-        // Note: Don't override commission - it should stay from SalaryRecord
-        // Only use this for display of leads, not for commission calculation
-        console.log('[SALARY PAGE] Sales leads updated for display only')
+        console.log('[SALARY PAGE] Leads array:', leads)
+        setSalesLeads(leads)
+        console.log('[SALARY PAGE] Sales leads updated for display only, count:', leads.length)
       }
     } catch (error) {
       console.error('Failed to fetch sales data', error)
@@ -111,7 +111,8 @@ export default function SalaryPage() {
       designation: salaryData.designation,
       employeeId: salaryData.employeeId,
     })
-  }, [salaryData.commissionEarned, salesLeads.length, salaryData.designation])
+    console.log('[RENDER] Sales Leads Array:', salesLeads)
+  }, [salaryData.commissionEarned, salesLeads.length, salaryData.designation, salesLeads])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
