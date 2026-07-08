@@ -224,6 +224,8 @@ export async function GET(request: NextRequest) {
     const employeeId = request.nextUrl.searchParams.get('employeeId')
     const month = request.nextUrl.searchParams.get('month')
 
+    console.log('[Sales API] GET request:', { employeeId, month })
+
     let where: any = { confirmed: true }
 
     if (employeeId) {
@@ -233,13 +235,16 @@ export async function GET(request: NextRequest) {
     if (month) {
       const monthDate = new Date(month)
       const startOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
-      const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)
+      const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0, 23, 59, 59, 999)
 
       where.confirmedAt = {
         gte: startOfMonth,
         lte: endOfMonth,
       }
+      console.log('[Sales API] Date range:', { startOfMonth, endOfMonth })
     }
+
+    console.log('[Sales API] Query filter:', where)
 
     const leads = await prisma.salesLead.findMany({
       where,
@@ -257,11 +262,15 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    console.log('[Sales API] Found leads:', leads.length)
+
     // Calculate statistics
     const totalLeads = leads.length
     const totalWorth = leads.reduce((sum, lead) => sum + lead.leadWorth, 0)
     const totalCommission = leads.reduce((sum, lead) => sum + lead.commission, 0)
     const monthlyIncentive = totalWorth >= 10000000 ? 30000 : 0
+
+    console.log('[Sales API] Statistics:', { totalLeads, totalWorth, totalCommission, monthlyIncentive })
 
     return NextResponse.json({
       success: true,
