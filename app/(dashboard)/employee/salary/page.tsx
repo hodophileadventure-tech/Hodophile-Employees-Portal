@@ -51,8 +51,7 @@ export default function SalaryPage() {
 
   const fetchSalesData = async (employeeId: string) => {
     try {
-      const month = new Date().toISOString().slice(0, 7)
-      const response = await fetch(`/api/sales/leads?employeeId=${employeeId}&month=${month}`)
+      const response = await fetch(`/api/sales/leads?employeeId=${employeeId}`)
       const data = await response.json()
       console.log('[SALARY PAGE] Sales data response:', data)
       if (data.success) {
@@ -325,10 +324,10 @@ export default function SalaryPage() {
 
           {/* Confirmed Leads Display */}
           <div className="mt-6 rounded-3xl border border-[#E5E5E5] bg-[#F5F5F5] p-6">
-            <h3 className="text-base font-semibold text-[#FCC000] mb-4">Confirmed Leads This Month ({salesLeads.length})</h3>
-            <p className="text-xs text-[#666] mb-4">Note: Your total confirmed commission is Rs. {salaryData.commissionEarned.toLocaleString()} (shown above). This section displays individual lead records.</p>
+            <h3 className="text-base font-semibold text-[#FCC000] mb-4">All Confirmed Sales ({salesLeads.length})</h3>
+            <p className="text-xs text-[#666] mb-4">Below are all your confirmed sales. Your total earned commission is Rs. {salaryData.commissionEarned.toLocaleString()} (from the Confirmed Commission card above).</p>
             {salesLeads.length === 0 ? (
-              <p className="text-sm text-[#2B2B2B]">No individual lead records to display. Check "Confirmed Commission" above for your total.</p>
+              <p className="text-sm text-[#2B2B2B]">No confirmed sales recorded yet.</p>
             ) : (
               <div className="space-y-3">
                 {salesLeads.map((lead) => (
