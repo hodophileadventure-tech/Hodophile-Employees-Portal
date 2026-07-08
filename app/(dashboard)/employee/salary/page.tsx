@@ -45,13 +45,16 @@ export default function SalaryPage() {
       const month = new Date().toISOString().slice(0, 7)
       const response = await fetch(`/api/sales/leads?employeeId=${employeeId}&month=${month}`)
       const data = await response.json()
+      console.log('[SALARY PAGE] Sales data response:', data)
       if (data.success) {
         const stats = data.data.statistics
+        console.log('[SALARY PAGE] Setting commission to:', stats.totalCommission)
         setSalesLeads(data.data.leads)
         setSalaryData((current) => {
           const totalCommission = stats.totalCommission ?? 0
           const incentive = stats.monthlyIncentive ?? 0
           const totalPay = current.earnedSalary + totalCommission + incentive
+          console.log('[SALARY PAGE] Updated salaryData:', { totalCommission, incentive, totalPay })
           return {
             ...current,
             commissionEarned: totalCommission,
@@ -242,6 +245,7 @@ export default function SalaryPage() {
               {refreshing ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
+          {console.log('[DEBUG] Rendering Sales Commission with data:', { commissionEarned: salaryData.commissionEarned, salesLeads: salesLeads.length })}
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-3xl border border-[#E5E5E5] bg-[#F5F5F5] p-5">
