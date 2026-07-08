@@ -83,6 +83,10 @@ export default function SalaryPage() {
   }
 
   useEffect(() => {
+    console.log('[DEBUG] Commission Data:', { commissionEarned: salaryData.commissionEarned, totalLeads: salesLeads.length })
+  }, [salaryData.commissionEarned, salesLeads.length])
+
+  useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
       setLoading(false)
@@ -245,7 +249,6 @@ export default function SalaryPage() {
               {refreshing ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
-          {console.log('[DEBUG] Rendering Sales Commission with data:', { commissionEarned: salaryData.commissionEarned, salesLeads: salesLeads.length })}
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-3xl border border-[#E5E5E5] bg-[#F5F5F5] p-5">
