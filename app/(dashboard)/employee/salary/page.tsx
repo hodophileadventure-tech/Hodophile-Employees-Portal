@@ -51,6 +51,18 @@ export default function SalaryPage() {
         const leads = data.data.leads
         console.log('[SALARY PAGE] Setting leads data:', stats)
         console.log('[SALARY PAGE] Leads array:', leads)
+        if (leads && leads.length > 0) {
+          console.log('[SALARY PAGE] First lead structure:', {
+            id: leads[0].id,
+            customerName: leads[0].customerName,
+            customerNumber: leads[0].customerNumber,
+            destination: leads[0].destination,
+            persons: leads[0].persons,
+            leadWorth: leads[0].leadWorth,
+            commission: leads[0].commission,
+            confirmedAt: leads[0].confirmedAt,
+          })
+        }
         setSalesLeads(leads)
         console.log('[SALARY PAGE] Sales leads updated for display only, count:', leads.length)
       }
@@ -113,6 +125,13 @@ export default function SalaryPage() {
     })
     console.log('[RENDER] Sales Leads Array:', salesLeads)
   }, [salaryData.commissionEarned, salesLeads.length, salaryData.designation, salesLeads])
+
+  useEffect(() => {
+    console.log('[STATE CHANGE] Sales Leads updated in state:', {
+      count: salesLeads.length,
+      leads: salesLeads,
+    })
+  }, [salesLeads])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
