@@ -38,6 +38,7 @@ export default function SalaryPage() {
     employeeId: '',
     designation: '',
   })
+  const [commissionBreakdown, setCommissionBreakdown] = useState<any>(null)
   const [salesLeads, setSalesLeads] = useState<LeadSummary[]>([])
   const [customerName, setCustomerName] = useState('')
   const [customerNumber, setCustomerNumber] = useState('')
@@ -79,6 +80,19 @@ export default function SalaryPage() {
     }
   }
 
+  const fetchCommissionBreakdown = async (employeeId: string) => {
+    try {
+      const response = await fetch(`/api/employee/commission-breakdown?employeeId=${employeeId}`)
+      const data = await response.json()
+      if (data.success) {
+        setCommissionBreakdown(data.data)
+        console.log('[COMMISSION BREAKDOWN]', data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch commission breakdown', error)
+    }
+  }
+
   const handleRefreshCommission = async () => {
     if (!salaryData.employeeId) {
       console.log('[REFRESH] No employee ID, skipping refresh')
@@ -114,6 +128,7 @@ export default function SalaryPage() {
 
       // Also fetch sales leads for display
       await fetchSalesData(salaryData.employeeId)
+      await fetchCommissionBreakdown(salaryData.employeeId)
       setMessage('Commission data refreshed')
       setTimeout(() => setMessage(''), 3000)
     } catch (error) {
@@ -188,6 +203,7 @@ export default function SalaryPage() {
 
         if (emp.designation?.toLowerCase().includes('sales executive')) {
           fetchSalesData(emp.id)
+          fetchCommissionBreakdown(emp.id)
         }
       } catch (e) {
         console.error('Failed to load salary data', e)
@@ -348,6 +364,27 @@ export default function SalaryPage() {
               </div>
             )}
           </div>
+
+          {/* Commission Breakdown by Month */}
+          {commissionBreakdown && commissionBreakdown.salaryRecords.length > 0 && (
+            <div className="mt-6 rounded-3xl border border-[#E5E5E5] bg-[#F5F5F5] p-6">
+              <h3 className="text-base font-semibold text-[#FCC000] mb-4">Commission History</h3>
+              <div className="space-y-2">
+                {commissionBreakdown.salaryRecords.map((record: any) => (
+                  <div key={record.id} className="flex items-center justify-between p-3 rounded-lg bg-white border border-[#E5E5E5]">
+                    <span className="text-sm text-[#2B2B2B]">{new Date(record.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                    <span className="font-semibold text-[#FCC000]">Rs. {record.commission.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-[#E5E5E5]">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-[#FFF8E6] border border-[#FCC000]">
+                  <span className="text-sm font-semibold text-[#2B2B2B]">Total Commission</span>
+                  <span className="text-lg font-bold text-[#FCC000]">Rs. {commissionBreakdown.summary.totalCommissionFromSalaryRecords.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
         </motion.div>
       ) : null}
