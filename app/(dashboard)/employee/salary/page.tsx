@@ -48,20 +48,11 @@ export default function SalaryPage() {
       console.log('[SALARY PAGE] Sales data response:', data)
       if (data.success) {
         const stats = data.data.statistics
-        console.log('[SALARY PAGE] Setting commission to:', stats.totalCommission)
+        console.log('[SALARY PAGE] Setting leads data:', stats)
         setSalesLeads(data.data.leads)
-        setSalaryData((current) => {
-          const totalCommission = stats.totalCommission ?? 0
-          const incentive = stats.monthlyIncentive ?? 0
-          const totalPay = current.earnedSalary + totalCommission + incentive
-          console.log('[SALARY PAGE] Updated salaryData:', { totalCommission, incentive, totalPay })
-          return {
-            ...current,
-            commissionEarned: totalCommission,
-            monthlyIncentive: incentive,
-            totalPay,
-          }
-        })
+        // Note: Don't override commission - it should stay from SalaryRecord
+        // Only use this for display of leads, not for commission calculation
+        console.log('[SALARY PAGE] Sales leads updated for display only')
       }
     } catch (error) {
       console.error('Failed to fetch sales data', error)
@@ -76,6 +67,32 @@ export default function SalaryPage() {
     setRefreshing(true)
     console.log('[REFRESH] Starting commission refresh for employee:', salaryData.employeeId)
     try {
+      // Fetch both salary record and sales leads
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      const month = new Date().toISOString().slice(0, 7)
+      const salaryRes = await fetch(`/api/employee/salary?month=${month}`, { headers: { Authorization: `Bearer ${token}` } })
+      const salaryJson = await salaryRes.json()
+
+      if (salaryJson.success && salaryJson.data.salaryRecord) {
+        const salaryRecord = salaryJson.data.salaryRecord
+        console.log('[REFRESH] Got updated salary record:', salaryRecord)
+        setSalaryData((s) => {
+          const commission = salaryRecord.commission ?? s.commissionEarned
+          const incentive = salaryRecord.monthlyIncentive ?? s.monthlyIncentive
+          const totalPay = s.earnedSalary + commission + incentive
+          console.log('[REFRESH] Updated commission to:', { commission, incentive, totalPay })
+          return {
+            ...s,
+            commissionEarned: commission,
+            monthlyIncentive: incentive,
+            totalPay,
+          }
+        })
+      }
+
+      // Also fetch sales leads for display
       await fetchSalesData(salaryData.employeeId)
       setMessage('Commission data refreshed')
       setTimeout(() => setMessage(''), 3000)
